@@ -1,8 +1,8 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript';
 
-@Table({ tableName: 'users' })
+@Table({ tableName: 'users_temp' })
 
-export class UserModel extends Model{
+export class UserTempModel extends Model{
     @Column({
         type: DataType.BIGINT,
         allowNull: false,

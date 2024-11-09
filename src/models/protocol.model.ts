@@ -9,25 +9,25 @@ export class ProtocolModel extends Model{
         autoIncrement : true,
         primaryKey : true
     })
-    id: Number;
+    id: number;
 
     @Column({
         type: DataType.INTEGER
     })
-    login_attempt_interval_minutes: Number;
+    login_attempt_interval_minutes: number;
 
     @Column({
         type: DataType.INTEGER
     })
-    login_max_retry: Number;
+    login_max_retry: number;
 
     @Column({
         type: DataType.INTEGER
     })
-    resend_otp_interval_minutes: Number;
+    resend_otp_interval_minutes: number;
 
     @Column({
         type: DataType.INTEGER
     })
-    otp_expiry_minutes: Number;
+    otp_expiry_minutes: number;
 }

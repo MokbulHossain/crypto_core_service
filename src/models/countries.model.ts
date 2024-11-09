@@ -9,15 +9,35 @@ export class CountriesModel extends Model{
         autoIncrement : true,
         primaryKey : true
     })
-    id: Number;
+    id: number;
 
     @Column({
         type: DataType.TEXT
     })
-    name: String;
+    country_name: String;
 
     @Column({
         type: DataType.TEXT
     })
-    code: String;
+    country_code: String;
+
+    @Column({
+        type: DataType.TEXT
+    })
+    mobile_prefix: String;
+
+    @Column({
+        type: DataType.TEXT
+    })
+    mobile_prefix_without_plus: String;
+
+    @Column({
+        type: DataType.SMALLINT
+    })
+    mobile_length: number;
+
+    @Column({
+        type: DataType.TEXT
+    })
+    flag_url: String;
 }

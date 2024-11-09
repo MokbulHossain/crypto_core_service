@@ -17,5 +17,19 @@
 	"merchentisnotrejected": "Merchent rejected failed",
 	"username should not be empty": "Username should not be empty",
 	"password should not be empty": "password should not be empty",
-	"maxdeviceactive": "Maximum 3 device can logged in with a same account at a time"
+	"maxdeviceactive": "Maximum 3 device can logged in with a same account at a time",
+	"name should not be empty": "name should not be empty",
+	"mobile should not be empty": "mobile should not be empty",
+	"countrie_id should not be empty": "countrie_id should not be empty",
+	"device_id should not be empty": "device_id should not be empty",
+	"usernotfound": "Invalid User",
+	"userislocked": "The Account is lock",
+	"userisdeleted": "The account is deleted",
+	"useristemporarylocked": "The account is temporary locked",
+	"userinvalidpassword": "Invalid password",
+	"useralreadyregistered": "The user already registered",
+	"userregistrationsuccess": "User registration successfull",
+	"otp_type must be one of the following values: LOGIN, REGISTRATION, FORGETPASS": "otp_type must be one of the following values: LOGIN, REGISTRATION, FORGETPASS",
+	"otp_type should not be empty": "otp_type should not be empty",
+	"devicenotfound": "devicenotfound"
 }

@@ -1,11 +1,12 @@
 import { Injectable , Inject} from '@nestjs/common';
-import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel} from '../../models'
-import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY} from '../../config/constants'
+import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel} from '../../models'
+import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY} from '../../config/constants'
 
 @Injectable()
 export class UserService {
     constructor(
         @Inject(USER_REPOSITORY) private readonly userRepository: typeof UserModel,
+        @Inject(USER_TEMP_REPOSITORY) private readonly userTempRepository: typeof UserTempModel,
         @Inject(USER_DEVICE_REPOSITORY) private readonly userDeviceRepository: typeof UserDeviceModel,
         @Inject(PASSWORD_CONFIG_REPOSITORY) private readonly passwordRepository: typeof PasswordConfigModel,
         @Inject(PROTOCOL_REPOSITORY) private readonly protocolRepository: typeof ProtocolModel,
@@ -14,19 +15,56 @@ export class UserService {
 
     ) { }
 
-    async getSingleser( email ){
+    async getSingleuser( email ){
 
         return await this.userRepository.findOne({ where: { email }})
     }
     
+    async tempcreate( data ){
+
+        return await this.userTempRepository.create(data)
+    }
+
     async create( data ){
 
         return await this.userRepository.create(data)
     }
 
+    async updateUserData( data, id ){
+
+        return await this.userRepository.update(data, {
+            where : { id }
+        })
+    }
+
+    async updateUserDataByEmail( data, email ){
+
+        return await this.userRepository.update(data, {
+            where : { email }
+        })
+    }
+
     async createDeviceLog( data ){
 
         return await this.userDeviceRepository.create(data)
+    }
+
+    async getDeviceLog( data ){
+
+        return await this.userDeviceRepository.findOne({
+            where: {
+                email: data['email'],
+                device_id: data['device_id'],
+            },
+            order: [['id', 'desc']]
+        })
+    }
+
+    async updateDeviceLog( data, id ){
+
+        return await this.userDeviceRepository.update(data, {
+            where : { id }
+        })
     }
 
     async passwordConfig() {

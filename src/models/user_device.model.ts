@@ -19,6 +19,11 @@ export class UserDeviceModel extends Model{
     @Column({
         type: DataType.TEXT
     })
+    email: string;
+    
+    @Column({
+        type: DataType.TEXT
+    })
     device_id: string;
 
     @Column({
@@ -46,7 +51,7 @@ export class UserDeviceModel extends Model{
         type: DataType.SMALLINT,
         defaultValue: 0
     })
-    total_attempt:Number
+    total_attempt:number
 
     @Column({
         type: DataType.TEXT,

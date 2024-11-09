@@ -1,4 +1,5 @@
 export *  from './user.model'
+export *  from './user_temp.model'
 export * from './logs.model'
 export * from './user_device.model'
 export * from './password_configuration.model'

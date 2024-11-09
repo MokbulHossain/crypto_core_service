@@ -9,17 +9,17 @@ export class PasswordConfigModel extends Model{
         autoIncrement : true,
         primaryKey : true
     })
-    id: Number;
+    id: number;
 
     @Column({
         type: DataType.INTEGER
     })
-    expire_date_length: Number;
+    expire_date_length: number;
 
     @Column({
         type: DataType.INTEGER
     })
-    length: Number;
+    length: number;
 
     @Column({
         type: DataType.BOOLEAN

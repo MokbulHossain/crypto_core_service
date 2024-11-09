@@ -26,7 +26,7 @@ const sequelizeLogging: SequelizeLoggingFunction = (sql: string, queryObject?: {
         return typeof value === 'string' ? `'${value}'` : value;
       });
     }
-    winstonLog.log('info', '%o',{ message: JSON.stringify(sql), transactionid_for_log:transactionid }, { label: 'Db-Log', transactionid_for_log:transactionid });
+    winstonLog.log('info', '%o',{ message: sql, transactionid_for_log:transactionid }, { label: 'Db-Log', transactionid_for_log:transactionid });
     
   }
 

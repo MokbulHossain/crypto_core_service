@@ -1,7 +1,7 @@
-import { Controller, Body, Post, UseGuards, Request, Injectable,UnauthorizedException } from '@nestjs/common';
+import { Controller, Body, Post, UseGuards, Request, Injectable,UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {LoginAuthDto, RegisterAuthDto} from '../../dto'
-import {UNAUTHORIZED} from '../../helpers/responseHelper'
+import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto} from '../../dto'
+import {UNAUTHORIZED, BAD_REQUEST} from '../../helpers/responseHelper'
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +15,12 @@ export class AuthController {
     @Post('v1/registration')
     async registration(@Request() req, @Body() regbody : RegisterAuthDto) {
         const user = await this.authService.registration(regbody);
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
         
     }
 
@@ -34,13 +40,25 @@ export class AuthController {
     }
 
     @Post('v1/resendOTP')
-    async resendOTP(@Request() req, @Body() login :LoginAuthDto) {
-        
+    async resendOTP(@Request() req, @Body() reqbody :ResendOTPDto) {
+        const user = await this.authService.resendOTP(reqbody)
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
     }
 
     @Post('v1/validateOTP')
-    async validateOTP(@Request() req, @Body() login :LoginAuthDto) {
+    async validateOTP(@Request() req, @Body() reqbody :OTPValidateDto) {
+        const user = await this.authService.validateOTP(reqbody)
+        if (user.code !== 100) {
 
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { ...user, res_message: req.i18n.__(user.resp_keyword)}
         
     }
 

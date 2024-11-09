@@ -108,7 +108,7 @@ export const requestBodyLog = (requestObj) => {
 }
 export const responseBodyLog = (responseObj) => {
   //log response body...
- winstonLog.log('info',' Response Body :  %o', responseObj || {}, { label: 'Response' })
+//  winstonLog.log('info',' Response Body :  %o', responseObj || {}, { label: 'Response' })
 }
 
 export const HttpUrlLog = (message) => {

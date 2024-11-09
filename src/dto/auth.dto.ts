@@ -41,6 +41,22 @@ export class RegisterAuthDto extends IntersectionType(LoginAuthDto) {
 
 }
 
+enum OTPTYPE {
+    LOGIN = 'LOGIN',
+    REGISTRATION = 'REGISTRATION',
+    FORGETPASS = 'FORGETPASS',
+}
+
+export class ResendOTPDto {
+
+    @IsNotEmpty()
+    readonly email: string;
+
+    @IsNotEmpty()
+    readonly device_id: string;
+
+}
+
 export class OTPValidateDto {
 
     @IsNotEmpty()

@@ -3,22 +3,25 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { REDIS_CONNECTION} from '../../config/constants'
 import { UserService } from '../user/user.service'
-import {LoginAuthDto, RegisterAuthDto} from '../../dto'
+import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto} from '../../dto'
 import { genRandomInRange } from '@helpers/utils'
 import axios from 'axios'
 import { winstonLog } from '@config/winstonLog'
+import { NotificationService } from './notification.service'
+import moment from 'moment';
 
 @Injectable()
 export class AuthService {
     constructor(
         @Inject(REDIS_CONNECTION) private redisClient: any,
         private readonly jwtService: JwtService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly notificationService: NotificationService
     ) { }
 
     async validateAuth(email: string, password: string) {
         
-        const user = await this.userService.getSingleser(email)
+        const user = await this.userService.getSingleuser(email)
  
         if(!user) {
 
@@ -37,7 +40,7 @@ export class AuthService {
                     return { code: 4004, resp_keyword: 'useristemporarylocked' } 
             }
 
-            return { code: 100, resp_keyword: 'loginsuccess' }
+            return { code: 100, resp_keyword: 'Ok' }
         }
         else {
 
@@ -47,40 +50,94 @@ export class AuthService {
 
     async registration(regbody: RegisterAuthDto){
 
-        const user = await this.userService.getSingleser(regbody.email)
+        const user = await this.userService.getSingleuser(regbody.email)
         if (user) {
             return { code: 4001, resp_keyword: 'useralreadyregistered' }
         }
 
-        const password = this.hashPassword(regbody.password)
-        const createData = await this.userService.create({...regbody, password})
+        const password = await this.hashPassword(regbody.password)
+        const createData = await this.userService.tempcreate({...regbody, password})
         const otp = genRandomInRange(100000, 999999)
+        console.log('otp => ', otp)
         const user_id = createData.id
-        const notificationBody = {
-            email: regbody.email,
-            body: `OTP is `, otp,
-            subject: "OTP-SEND"
+ 
+        this.userService.createDeviceLog({...regbody, user_id, otp, otp_type: 'REGISTRATION', otp_createdat: new Date()})
+        
+        this.notificationService.sendEmail({
+            email: regbody.email, 
+            body: `OTP is ${otp}`, 
+            subject: 'APP OTP', 
+            user_id
+        })
+
+        return { code: 100, resp_keyword: 'userregistrationsuccess' }
+    }
+
+    async resendOTP (reqbody: ResendOTPDto) {
+
+        const deviceinfo = await this.userService.getDeviceLog(reqbody)
+        if (!deviceinfo) {
+            return { code: 4001, resp_keyword: 'devicenotfound' }
         }
 
-        this.userService.createDeviceLog({...regbody, otp, otp_type: 'LOGIN', otp_createdat: new Date()})
-        const url = process.env.EMAIL_NOTIFICATION_URL
-        axios({
-            url,
-            method: 'POST',
-            data: notificationBody,
-            }).then(async response => {
-        
-                const responseData = response['data']
-                winstonLog.log('info', `${url} api Response %o`, responseData, { transactionid_for_log: `user_id=${user_id}`});
-                return responseData
-                
-            }).catch(async (e) => {
+        const otp = genRandomInRange(100000, 999999)
 
-                const errorResponse = e['response'] ? (e['response']['data'] ? e['response']['data'] : e['response']) : e
-                winstonLog.log('error', `${url} api Response %o`, errorResponse, { transactionid_for_log: `user_id=${user_id}`})
+        this.notificationService.sendEmail({
+            email: deviceinfo.email, 
+            body: `OTP is ${otp}`, 
+            subject: 'APP OTP', 
+            user_id: deviceinfo.user_id
+        })
+        this.userService.updateDeviceLog( { otp, otp_createdat: new Date() }, deviceinfo.id )
 
-                return null
-            })
+        return { code: 100, resp_keyword: 'Ok' }
+
+    }
+
+    async validateOTP(reqbody: OTPValidateDto) {
+
+        const deviceinfo = await this.userService.getDeviceLog(reqbody)
+        if (!deviceinfo) {
+            return { code: 4001, resp_keyword: 'devicenotfound' }
+        }
+
+        const protocols = await this.userService.protocol()
+        const total_attempt = deviceinfo.total_attempt + 1
+
+        if (total_attempt > protocols.login_max_retry && moment(new Date()).diff(
+            moment(new Date(deviceinfo.otp_createdat)),
+            'minutes',
+        ) < protocols.login_attempt_interval_minutes) {
+
+            return { code: 4002, resp_keyword: 'temporaryblockotp' }
+        }
+
+        if (deviceinfo.otp != reqbody.otp) {
+            if (total_attempt >= protocols.login_max_retry && deviceinfo.otp_type != 'REGISTRATION') {
+                this.userService.updateUserDataByEmail({status: 4, locked_at: new Date()}, deviceinfo.email)
+            }
+            this.userService.updateDeviceLog( { total_attempt }, deviceinfo.id )
+            return { code: 4003, resp_keyword: 'invalidotp' }
+        }
+ 
+        let time = new Date().valueOf() - new Date(deviceinfo.otp_createdat).valueOf();
+        time = Math.round(((time % 86400000) % 3600000) / 60000); //in minutes difference
+        if (time > protocols.otp_expiry_minutes) {
+            return { code: 4002, resp_keyword: 'otpexpire' }
+        }
+
+        switch (deviceinfo.otp_type) {
+
+            case "LOGIN" :
+
+            case "REGISTRATION" :
+
+            case "FORGETPASS" :
+
+        }
+
+
+        return { code: 100, resp_keyword: 'Ok' }
 
     }
 
