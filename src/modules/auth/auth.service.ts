@@ -19,7 +19,7 @@ export class AuthService {
         private readonly notificationService: NotificationService
     ) { }
 
-    async validateAuth(email: string, password: string) {
+    async validateAuth(email: string, password: string, reqbody) {
         
         const user = await this.userService.getSingleuser(email)
  
@@ -40,6 +40,18 @@ export class AuthService {
                     return { code: 4004, resp_keyword: 'useristemporarylocked' } 
             }
 
+            const otp = genRandomInRange(100000, 999999)
+            console.log('otp => ', otp)
+            const user_id = user.id
+     
+            this.userService.createDeviceLog({...reqbody, user_id, otp, otp_type: 'LOGIN', otp_createdat: new Date()})
+            
+            this.notificationService.sendEmail({
+                email: user.email, 
+                body: `OTP is ${otp}`, 
+                subject: 'APP OTP', 
+                user_id
+            })
             return { code: 100, resp_keyword: 'Ok' }
         }
         else {
@@ -96,14 +108,20 @@ export class AuthService {
 
     async validateOTP(reqbody: OTPValidateDto) {
 
+        let userData = null, locked = false
         const deviceinfo = await this.userService.getDeviceLog(reqbody)
         if (!deviceinfo) {
             return { code: 4001, resp_keyword: 'devicenotfound' }
         }
 
+        if (deviceinfo.otp_used) {
+            return { code: 4000, resp_keyword: 'otpalreadyused' }
+        }
+
         const protocols = await this.userService.protocol()
         const total_attempt = deviceinfo.total_attempt + 1
 
+        // same device...
         if (total_attempt > protocols.login_max_retry && moment(new Date()).diff(
             moment(new Date(deviceinfo.otp_createdat)),
             'minutes',
@@ -112,32 +130,68 @@ export class AuthService {
             return { code: 4002, resp_keyword: 'temporaryblockotp' }
         }
 
+        // other device....
+        if (deviceinfo.otp_type != 'REGISTRATION') {
+            userData = await this.userService.getSingleuser( deviceinfo.email )
+            // check temp block or not...
+            if (userData.status == 4 && moment(new Date()).diff(
+                moment(new Date(userData.locked_at)),
+                'minutes',
+            ) < protocols.login_attempt_interval_minutes) {
+
+                return { code: 4002, resp_keyword: 'temporaryblockotp' }
+            }
+        }
+
+        // check otp..
         if (deviceinfo.otp != reqbody.otp) {
+            // lock temporary....
             if (total_attempt >= protocols.login_max_retry && deviceinfo.otp_type != 'REGISTRATION') {
                 this.userService.updateUserDataByEmail({status: 4, locked_at: new Date()}, deviceinfo.email)
+                locked = true
+            } else if (total_attempt >= protocols.login_max_retry) {
+                locked = true
             }
+            // increase total_attempt...
             this.userService.updateDeviceLog( { total_attempt }, deviceinfo.id )
-            return { code: 4003, resp_keyword: 'invalidotp' }
+            return { code: 4003, resp_keyword: locked ? 'temporaryblockotp' : 'invalidotp' }
         }
- 
-        let time = new Date().valueOf() - new Date(deviceinfo.otp_createdat).valueOf();
-        time = Math.round(((time % 86400000) % 3600000) / 60000); //in minutes difference
+
+        console.log(`Math.round((((new Date().valueOf() - new Date(deviceinfo.otp_createdat).valueOf()) % 86400000) % 3600000) / 60000) => `, Math.round((((new Date().valueOf() - new Date(deviceinfo.otp_createdat).valueOf()) % 86400000) % 3600000) / 60000))
+        console.log(`protocols.otp_expiry_minutes => `, protocols.otp_expiry_minutes)
+        console.log(`deviceinfo.otp_createdat => `, deviceinfo.otp_createdat)
+        console.log(`new Date() => `, new Date())
+        // check otp expiry...
+        let time = Math.round((((new Date().valueOf() - new Date(deviceinfo.otp_createdat).valueOf()) % 86400000) % 3600000) / 60000); //in minutes difference
         if (time > protocols.otp_expiry_minutes) {
+            this.userService.updateDeviceLog( { total_attempt }, deviceinfo.id )
             return { code: 4002, resp_keyword: 'otpexpire' }
         }
 
         switch (deviceinfo.otp_type) {
 
             case "LOGIN" :
+            case "FORGETPASS" :
+                break
 
             case "REGISTRATION" :
-
-            case "FORGETPASS" :
-
+                const tempuser = await this.userService.getSingleTempuser(deviceinfo.email)
+                delete tempuser.id
+                console.log('tempuser => ', tempuser)
+                const [newuser,] = await Promise.all([
+                    this.userService.create({...tempuser['dataValues']}),
+                    this.userService.deleteTempuser(deviceinfo.email)
+                ])
+                userData = newuser
+                break
         }
 
+        this.userService.updateDeviceLog( { user_id:userData.id, otp_used:true, total_attempt: 0  }, deviceinfo.id )
+        if (userData.status == 4) {
+            this.userService.updateUserDataByEmail({status: 1, locked_at: null}, deviceinfo.email)
+        }
 
-        return { code: 100, resp_keyword: 'Ok' }
+        return { code: 100, resp_keyword: 'Ok', userData }
 
     }
 
@@ -153,17 +207,9 @@ export class AuthService {
 
     private async getUserTokenCount(userId) {
         const pattern = `enduser_auth:${userId}:token*`
-        let count = 0;
-        let cursor = '0'
-        
-        do {
-          const [nextCursor, keys] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
-          count += keys.length;
-          cursor = nextCursor;
-        } while (cursor !== '0' && count < 3)
-        
-        return count;
-      }
+        const { keys } = await this.redisClient.scan('0', pattern, 4)
+        return keys.length
+    }
 
     private async generateToken(user) {
         const jti =  `${Date.now()}_${this.generateId(10)}`
@@ -214,17 +260,17 @@ export class AuthService {
     public async login(user) {
 
         const {id, email, mobile, device_id} = user
-        const tokenData = { id, email, mobile, device_id }
+        const tokenData = { user_id: id, email, mobile, device_id }
 
         const ActiveAccCount = await this.getUserTokenCount(id)
         if ((ActiveAccCount + 1) > 3) {
             // max 3 device already have logged in...
-            return null
+            return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
 
         const [access_token, refresh_token] = await Promise.all([ await this.generateToken(tokenData), await this.generateRefreshToken(tokenData)]);
         const [decoded, decoded2] = await Promise.all([await this.jwtService.decode(access_token), await this.jwtService.decode(refresh_token)])
-        return { ...user, access_token, access_token_expires: decoded['exp'] || 7991326775, refresh_token, refresh_token_expires: decoded2['exp'] || 7991326775 };
+        return {code: 100, resp_keyword: 'Ok', data : { userData: user, access_token, access_token_expires: decoded['exp'] || 7991326775, refresh_token, refresh_token_expires: decoded2['exp'] || 7991326775 }}
     }
 
     private async hashPassword(password) {

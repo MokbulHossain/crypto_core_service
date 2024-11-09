@@ -31,5 +31,10 @@
 	"userregistrationsuccess": "User registration successfull",
 	"otp_type must be one of the following values: LOGIN, REGISTRATION, FORGETPASS": "otp_type must be one of the following values: LOGIN, REGISTRATION, FORGETPASS",
 	"otp_type should not be empty": "otp_type should not be empty",
-	"devicenotfound": "devicenotfound"
+	"devicenotfound": "Device not found",
+	"otp should not be empty": "otp should not be empty",
+	"otpexpire": "OTP expired",
+	"otpalreadyused": "OTP Already used",
+	"temporaryblockotp": "Your account has been locked temporarily due to multiple wrong OTP attempts. Please try after {time} hours.",
+	"invalidotp": "Sorry the OTP entered was invalid. Resend OTP or contact Crypto Customer Service at 123."
 }

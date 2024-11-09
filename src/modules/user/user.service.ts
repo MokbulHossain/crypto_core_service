@@ -19,6 +19,16 @@ export class UserService {
 
         return await this.userRepository.findOne({ where: { email }})
     }
+
+    async getSingleTempuser( email ){
+
+        return await this.userTempRepository.findOne({ where: { email }, order: [['id', 'desc']]})
+    }
+
+    async deleteTempuser( email ){
+
+        return await this.userTempRepository.destroy({ where: { email }})
+    }
     
     async tempcreate( data ){
 

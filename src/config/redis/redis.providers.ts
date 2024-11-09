@@ -93,6 +93,9 @@ const createRedisClient = async () => {
     set: async (key, value) => await performOperationWithReconnect(() => client.set(key, value)),
     setEx: async (key, time, value) => await performOperationWithReconnect(() => client.setEx(key, time, value)),
     del: async (key) => await performOperationWithReconnect(() => client.del(key)),
+    scan: async (cursor = 0, pattern = '*', count = 100) => 
+      performOperationWithReconnect(() => client.scan(cursor, {MATCH: pattern, COUNT:count })),
+
     // Add other Redis operations as needed
   };
 };

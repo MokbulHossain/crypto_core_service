@@ -26,16 +26,14 @@ export class AuthController {
 
     @Post('v1/login')
     async login(@Request() req, @Body() login : LoginAuthDto) {
-        const user = await this.authService.validateAuth(login.email,login.password);
-        if (!user) {
-         throw new UnauthorizedException(UNAUTHORIZED(req.i18n.__('invalidusercredentials'),req));
-        }
-        const response = await this.authService.login(user);
-        if (!response) {
-            throw new UnauthorizedException(UNAUTHORIZED(req.i18n.__('maxdeviceactive'),req));
+        const user = await this.authService.validateAuth(login.email,login.password, login);
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
         }
 
-        return response
+        return { res_message: req.i18n.__(user.resp_keyword)}
         
     }
 
@@ -57,8 +55,14 @@ export class AuthController {
 
             throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
         }
+        // userData
+        const response = await this.authService.login(user['userData']);
+        if (response.code !== 100) {
 
-        return { ...user, res_message: req.i18n.__(user.resp_keyword)}
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { ...response['data'], res_message: req.i18n.__(user.resp_keyword)}
         
     }
 
