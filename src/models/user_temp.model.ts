@@ -32,6 +32,11 @@ export class UserTempModel extends Model{
     image: string;
 
     @Column({
+        type: DataType.BIGINT
+    })
+    mobile: number
+    
+    @Column({
         type: DataType.INTEGER
     })
     tier_id: number;

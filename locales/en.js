@@ -36,5 +36,7 @@
 	"otpexpire": "OTP expired",
 	"otpalreadyused": "OTP Already used",
 	"temporaryblockotp": "Your account has been locked temporarily due to multiple wrong OTP attempts. Please try after {time} hours.",
-	"invalidotp": "Sorry the OTP entered was invalid. Resend OTP or contact Crypto Customer Service at 123."
+	"invalidotp": "Sorry the OTP entered was invalid. Resend OTP or contact Crypto Customer Service at 123.",
+	"otpsend": "OTP is send to your email address, please validate it",
+	"3deviceloggedin": "Already 3 device logged in with this account"
 }

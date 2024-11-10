@@ -17,13 +17,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     async validate(payload: any) {
   
         //check if user in the token actually exist
-        const user = await this.authService.checkJwtTokenInRedis(payload.id,payload.jti);
+        const user = await this.authService.checkJwtTokenInRedis(payload.user_id,payload.jti);
 
         if (!user) {
-            console.log('authorized')
             throw new UnauthorizedException('You are not authorized to perform the operation');
         }
-        return user;
+        return {...user, jti: payload.jti};
     }
 
 }
@@ -42,7 +41,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy,'jwt-refresh
     async validate(payload: any) {
 
       //check if user in the token actually exist
-      const user = await this.authService.checkJwtRefreshTokenInRedis(payload.id,payload.jti);
+      const user = await this.authService.checkJwtRefreshTokenInRedis(payload.user_id,payload.jti);
 
       if (!user) {
           console.log('authorized')

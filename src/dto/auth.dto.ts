@@ -69,3 +69,43 @@ export class OTPValidateDto {
     readonly device_id: string;
 
 }
+
+export class ForgetPassAuthDto {
+
+    @IsNotEmpty()
+    readonly email: string;
+
+    @IsNotEmpty()
+    readonly device_id: string;
+
+    @IsNotEmpty()
+    readonly fcm: string;
+
+    @IsOptional()
+    readonly handset_type: string;
+
+    @IsOptional()
+    readonly osversion: string;
+
+    @IsOptional()
+    readonly phone_model: string;
+
+}
+
+export class PasswordSetAuthDto {
+
+    @IsNotEmpty()
+    readonly newpassword: string;
+
+}
+
+export class ChangePasswordAuthDto {
+
+    @IsNotEmpty()
+    readonly password: string;
+
+    @IsNotEmpty()
+    readonly newpassword: string;
+
+}
+

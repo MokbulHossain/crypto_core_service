@@ -1,8 +1,8 @@
-import { Controller, Body, Post, UseGuards, Request, Injectable,UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Body, Post, UseGuards, Request, Injectable,UnauthorizedException, BadRequestException, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto} from '../../dto'
+import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto, ForgetPassAuthDto, PasswordSetAuthDto, ChangePasswordAuthDto} from '../../dto'
 import {UNAUTHORIZED, BAD_REQUEST} from '../../helpers/responseHelper'
-
+import { JwtAuthGuard } from '../../middleware/guards'
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) {}
@@ -56,7 +56,7 @@ export class AuthController {
             throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
         }
         // userData
-        const response = await this.authService.login(user['userData']);
+        const response = await this.authService.login({...user['userData'], device_id: reqbody.device_id});
         if (response.code !== 100) {
 
             throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
@@ -73,20 +73,46 @@ export class AuthController {
      */
     // After password reset, all login device logout option need
     @Post('v1/forgetPassword')
-    async forgetPassword(@Request() req, @Body() login :LoginAuthDto) {
-        
+    async forgetPassword(@Request() req, @Body() reqbody :ForgetPassAuthDto) {
+        const user = await this.authService.forgetPassword(reqbody);
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('v1/passwordSet')
-    async passwordSet(@Request() req, @Body() login :LoginAuthDto) {
+    async passwordSet(@Request() req, @Body() reqbody :PasswordSetAuthDto) {
+        const user = await this.authService.passwordSet(reqbody.newpassword, req.user['user_id'])
+        if (user.code !== 100) {
 
-        
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
     }
 
     // After password reset, all login device logout option need
+    @UseGuards(JwtAuthGuard)
     @Post('v1/changePassword')
-    async changePassword(@Request() req, @Body() login :LoginAuthDto) {
-        
+    async changePassword(@Request() req, @Body() reqbody :ChangePasswordAuthDto) {
+        const user = await this.authService.changePassword(reqbody.password, reqbody.newpassword, req.user['user_id'])
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('v1/logout')
+    async logout(@Request() req, @Query('all') from_all = 'false') {
+        this.authService.logout(req.user['user_id'], from_all, req.user['jti'])
+        return { res_message: req.i18n.__('Ok')}
     }
 
 }

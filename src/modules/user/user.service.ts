@@ -20,6 +20,11 @@ export class UserService {
         return await this.userRepository.findOne({ where: { email }})
     }
 
+    async getSingleuserById( id ){
+
+        return await this.userRepository.findOne({ where: { id }})
+    }
+
     async getSingleTempuser( email ){
 
         return await this.userTempRepository.findOne({ where: { email }, order: [['id', 'desc']]})

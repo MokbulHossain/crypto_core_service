@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { REDIS_CONNECTION} from '../../config/constants'
 import { UserService } from '../user/user.service'
-import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto} from '../../dto'
+import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto, ForgetPassAuthDto} from '../../dto'
 import { genRandomInRange } from '@helpers/utils'
 import axios from 'axios'
 import { winstonLog } from '@config/winstonLog'
@@ -22,42 +22,44 @@ export class AuthService {
     async validateAuth(email: string, password: string, reqbody) {
         
         const user = await this.userService.getSingleuser(email)
- 
         if(!user) {
-
             return { code: 4001, resp_keyword: 'usernotfound' }
         }
-        else if(await this.comparePassword(password, user.password)) {
-
-            switch (user.status) {
-                case 2 :
-                    return { code: 4003, resp_keyword: 'userislocked' }
-                    
-                case 3 :
-                    return { code: 4004, resp_keyword: 'userisdeleted' }
-                    
-                case 4 :
-                    return { code: 4004, resp_keyword: 'useristemporarylocked' } 
-            }
-
-            const otp = genRandomInRange(100000, 999999)
-            console.log('otp => ', otp)
-            const user_id = user.id
-     
-            this.userService.createDeviceLog({...reqbody, user_id, otp, otp_type: 'LOGIN', otp_createdat: new Date()})
-            
-            this.notificationService.sendEmail({
-                email: user.email, 
-                body: `OTP is ${otp}`, 
-                subject: 'APP OTP', 
-                user_id
-            })
-            return { code: 100, resp_keyword: 'Ok' }
-        }
-        else {
-
+        
+        if(!(await this.comparePassword(password, user.password))) {
             return { code: 4002, resp_keyword: 'userinvalidpassword' }
         }
+        
+        switch (user.status) {
+            case 2 :
+                return { code: 4003, resp_keyword: 'userislocked' }
+                
+            case 3 :
+                return { code: 4004, resp_keyword: 'userisdeleted' }
+                
+            case 4 :
+                return { code: 4004, resp_keyword: 'useristemporarylocked' } 
+        }
+
+        const ActiveAccCount = await this.getUserTokenCount(user.id)
+        if ((ActiveAccCount + 1) > 3) {
+            // max 3 device already have logged in...
+            return { code: 4002, resp_keyword: '3deviceloggedin' }
+        }
+
+        const otp = genRandomInRange(100000, 999999)
+        console.log('otp => ', otp)
+        const user_id = user.id
+ 
+        this.userService.createDeviceLog({...reqbody, user_id, otp, otp_type: 'LOGIN', otp_createdat: new Date()})
+        
+        this.notificationService.sendEmail({
+            email: user.email, 
+            body: `OTP is ${otp}`, 
+            subject: 'APP OTP', 
+            user_id
+        })
+        return { code: 100, resp_keyword: 'otpsend' }
     }
 
     async registration(regbody: RegisterAuthDto){
@@ -82,7 +84,28 @@ export class AuthService {
             user_id
         })
 
-        return { code: 100, resp_keyword: 'userregistrationsuccess' }
+        return { code: 100, resp_keyword: 'otpsend' }
+    }
+
+    async forgetPassword(reqbody: ForgetPassAuthDto) {
+        const user = await this.userService.getSingleuser(reqbody.email)
+        if(!user) {
+            return { code: 4001, resp_keyword: 'usernotfound' }
+        }
+        const otp = genRandomInRange(100000, 999999)
+        console.log('otp => ', otp)
+        const user_id = user.id
+ 
+        this.userService.createDeviceLog({...reqbody, user_id, otp, otp_type: 'FORGETPASS', otp_createdat: new Date()})
+        
+        this.notificationService.sendEmail({
+            email: reqbody.email, 
+            body: `OTP is ${otp}`, 
+            subject: 'APP OTP', 
+            user_id
+        })
+
+        return { code: 100, resp_keyword: 'otpsend' }
     }
 
     async resendOTP (reqbody: ResendOTPDto) {
@@ -191,8 +214,46 @@ export class AuthService {
             this.userService.updateUserDataByEmail({status: 1, locked_at: null}, deviceinfo.email)
         }
 
-        return { code: 100, resp_keyword: 'Ok', userData }
+        return { code: 100, resp_keyword: 'Ok', userData: userData['dataValues'] }
 
+    }
+
+    async passwordSet(newpassword, user_id) {
+        const password = await this.hashPassword(newpassword)
+        await this.userService.updateUserData( {password}, user_id )
+        return { code: 100, resp_keyword: 'Ok' }
+    }
+
+    async changePassword(password, newpassword, user_id) {
+        const user = await this.userService.getSingleuserById( user_id )
+        if(!user) {
+
+            return { code: 4001, resp_keyword: 'usernotfound' }
+        }
+
+        if(await this.comparePassword(password, user.password)) {
+
+            const passwordhash = await this.hashPassword(newpassword)
+            await this.userService.updateUserData( {password: passwordhash}, user_id )
+            return { code: 100, resp_keyword: 'Ok' }
+        }
+        else {
+
+            return { code: 4002, resp_keyword: 'userinvalidpassword' }
+        }
+    }
+
+    async logout(user_id, from_all, jti) {
+        if (from_all == 'true') {
+            this.deleteallcache(user_id)
+        } else {
+            const tokenkey = `enduser_auth:${user_id}:token:${jti}`
+            const reftokenkey = `enduser_auth:${user_id}:refreshToken:${jti}`
+            this.redisClient.del([tokenkey, reftokenkey])
+
+        }
+        return { code: 100, resp_keyword: 'Ok' }
+        
     }
 
     private generateId(length: number) {
@@ -208,14 +269,25 @@ export class AuthService {
     private async getUserTokenCount(userId) {
         const pattern = `enduser_auth:${userId}:token*`
         const { keys } = await this.redisClient.scan('0', pattern, 4)
+        console.log('keys => ', keys)
         return keys.length
     }
 
-    private async generateToken(user) {
-        const jti =  `${Date.now()}_${this.generateId(10)}`
+    private async deleteallcache(userId) {
+        const pattern = `enduser_auth:${userId}:*`
+        const { keys } = await this.redisClient.scan('0', pattern, 4)
+        if (keys.length > 0) {
+            // Delete all matched keys in bulk
+            await this.redisClient.del([...keys])
+        }
+
+      }
+
+    private async generateToken(user, identifier=null) {
+        const jti =  identifier || `${Date.now()}_${this.generateId(10)}`
         const token = await this.jwtService.signAsync({...user,jti});
         const decoded = await this.jwtService.decode(token);
-        const key = `enduser_auth:${user.id}:token:` + jti;
+        const key = `enduser_auth:${user.user_id}:token:` + jti;
         if (decoded['exp']) { 
              await  this.redisClient.setEx(key, Math.floor(decoded['exp'] - Date.now() / 1000), JSON.stringify(user));
         } else{
@@ -224,11 +296,11 @@ export class AuthService {
         return token;
     }
 
-    private async generateRefreshToken(user) {
-        const jti =  `${Date.now()}_${this.generateId(10)}`
+    private async generateRefreshToken(user, identifier=null) {
+        const jti =  identifier || `${Date.now()}_${this.generateId(10)}`
         const token = await this.jwtService.signAsync({...user,jti}, { secret: process.env.REFRESH_KEY, expiresIn: process.env.REFRESH_TOKEN_EXPIRATION })
         const decoded = await this.jwtService.decode(token);
-        const key = `enduser_auth:${user.id}:refreshToken:` + jti;
+        const key = `enduser_auth:${user.user_id}:refreshToken:` + jti;
         if (decoded['exp']) { 
              await  this.redisClient.setEx(key, Math.floor(decoded['exp'] - Date.now() / 1000), JSON.stringify(user));
         } else{
@@ -268,8 +340,11 @@ export class AuthService {
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
 
-        const [access_token, refresh_token] = await Promise.all([ await this.generateToken(tokenData), await this.generateRefreshToken(tokenData)]);
+        const identifier = `${Date.now()}_${this.generateId(10)}`
+
+        const [access_token, refresh_token] = await Promise.all([ await this.generateToken(tokenData, identifier), await this.generateRefreshToken(tokenData, identifier)]);
         const [decoded, decoded2] = await Promise.all([await this.jwtService.decode(access_token), await this.jwtService.decode(refresh_token)])
+        delete user['device_id']
         return {code: 100, resp_keyword: 'Ok', data : { userData: user, access_token, access_token_expires: decoded['exp'] || 7991326775, refresh_token, refresh_token_expires: decoded2['exp'] || 7991326775 }}
     }
 
