@@ -41,8 +41,11 @@ export class AuthService {
                 return { code: 4004, resp_keyword: 'useristemporarylocked' } 
         }
 
-        const ActiveAccCount = await this.getUserTokenCount(user.id)
-        if ((ActiveAccCount + 1) > 3) {
+        const [protocols, ActiveAccCount ] = await Promise.all([
+            this.userService.protocol(),
+            this.getUserTokenCount(user.id)
+        ])
+        if ((ActiveAccCount + 1) > (+protocols.max_active_devices)) {
             // max 3 device already have logged in...
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
@@ -334,13 +337,18 @@ export class AuthService {
         const {id, email, mobile, device_id} = user
         const tokenData = { user_id: id, email, mobile, device_id }
 
-        const ActiveAccCount = await this.getUserTokenCount(id)
-        if ((ActiveAccCount + 1) > 3) {
+        const [protocols, ActiveAccCount ] = await Promise.all([
+            this.userService.protocol(),
+            this.getUserTokenCount(id)
+        ])
+
+        if ((ActiveAccCount + 1) >  (+protocols.max_active_devices)) {
             // max 3 device already have logged in...
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
 
-        const identifier = `${Date.now()}_${this.generateId(10)}`
+        // const identifier = `${Date.now()}_${this.generateId(10)}`
+        const identifier = device_id
 
         const [access_token, refresh_token] = await Promise.all([ await this.generateToken(tokenData, identifier), await this.generateRefreshToken(tokenData, identifier)]);
         const [decoded, decoded2] = await Promise.all([await this.jwtService.decode(access_token), await this.jwtService.decode(refresh_token)])

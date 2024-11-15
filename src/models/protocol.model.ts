@@ -30,4 +30,9 @@ export class ProtocolModel extends Model{
         type: DataType.INTEGER
     })
     otp_expiry_minutes: number;
+
+    @Column({
+        type: DataType.INTEGER
+    })
+    max_active_devices: number
 }
