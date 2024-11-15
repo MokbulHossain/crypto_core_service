@@ -41,11 +41,13 @@ export class AuthService {
                 return { code: 4004, resp_keyword: 'useristemporarylocked' } 
         }
 
-        const [protocols, ActiveAccCount ] = await Promise.all([
+        const [protocols, ActiveDevices ] = await Promise.all([
             this.userService.protocol(),
             this.getUserTokenCount(user.id)
         ])
-        if ((ActiveAccCount + 1) > (+protocols.max_active_devices)) {
+
+        // enduser_auth:26:token:TE1A.220922.010
+        if ((ActiveDevices.length + 1) > (+protocols.max_active_devices) && !ActiveDevices.includes(`enduser_auth:${user.id}:token:${reqbody.device_id}`)) {
             // max 3 device already have logged in...
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
@@ -273,7 +275,7 @@ export class AuthService {
         const pattern = `enduser_auth:${userId}:token*`
         const { keys } = await this.redisClient.scan('0', pattern, 4)
         console.log('keys => ', keys)
-        return keys.length
+        return keys
     }
 
     private async deleteallcache(userId) {
@@ -337,12 +339,13 @@ export class AuthService {
         const {id, email, mobile, device_id} = user
         const tokenData = { user_id: id, email, mobile, device_id }
 
-        const [protocols, ActiveAccCount ] = await Promise.all([
+        const [protocols, ActiveDevices ] = await Promise.all([
             this.userService.protocol(),
             this.getUserTokenCount(id)
         ])
 
-        if ((ActiveAccCount + 1) >  (+protocols.max_active_devices)) {
+        // enduser_auth:26:token:TE1A.220922.010
+        if ((ActiveDevices.length + 1) > (+protocols.max_active_devices) && !ActiveDevices.includes(`enduser_auth:${id}:token:${device_id}`)) {
             // max 3 device already have logged in...
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
