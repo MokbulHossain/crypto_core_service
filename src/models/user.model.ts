@@ -37,6 +37,16 @@ export class UserModel extends Model{
     mobile: number
 
     @Column({
+        type: DataType.FLOAT
+    })
+    win_ratio: number;
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    roi: number;
+    
+    @Column({
         type: DataType.INTEGER
     })
     tier_id: number;

@@ -1,6 +1,8 @@
 import { Injectable , Inject} from '@nestjs/common';
-import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel} from '../../models'
-import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY} from '../../config/constants'
+import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel} from '../../models'
+import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY} from '../../config/constants'
+
+import { Op } from 'sequelize';
 
 @Injectable()
 export class UserService {
@@ -11,6 +13,7 @@ export class UserService {
         @Inject(PASSWORD_CONFIG_REPOSITORY) private readonly passwordRepository: typeof PasswordConfigModel,
         @Inject(PROTOCOL_REPOSITORY) private readonly protocolRepository: typeof ProtocolModel,
         @Inject(COUNTRIES_REPOSITORY) private readonly countriesRepository: typeof CountriesModel,
+        @Inject(HEROLISTVIEW_REPOSITORY) private readonly heroRepository: typeof HeroListViewModel,
 
 
     ) { }
@@ -92,5 +95,35 @@ export class UserService {
 
     async counties() {
         return await this.countriesRepository.findAll()
+    }
+
+    async herolist(page, limit, search) {
+
+        let conditions = {}
+        if (search) {
+            const isNumeric = /^\d+$/.test(search); // Check if the search contains only digits
+            if (isNumeric) {
+                conditions = {
+                    [Op.or]: [
+                      { name: { [Op.iLike]: `%${search}%` } },
+                      { email: { [Op.iLike]: `%${search}%` } },
+                      { mobile: { [Op.iLike]: `%${search}%` } },
+                    ]
+                }
+            } else {
+                conditions = {
+                    [Op.or]: [
+                      { name: { [Op.iLike]: `%${search}%` } },
+                      { email: { [Op.iLike]: `%${search}%` } }                    
+                    ]
+                }
+            }
+        }
+        return await this.heroRepository.findAll({
+            where: conditions,
+            offset: (page - 1) * limit,
+            limit,
+            order: [['user_id', 'desc']]
+        })
     }
 }

@@ -1,5 +1,5 @@
-import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel} from '../../models'
-import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY} from '../../config/constants'
+import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel} from '../../models'
+import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY} from '../../config/constants'
 
 export const UserProviders = [
     {
@@ -27,5 +27,9 @@ export const UserProviders = [
     {
         provide: USER_TEMP_REPOSITORY,
         useValue: UserTempModel 
+    },
+    {
+        provide: HEROLISTVIEW_REPOSITORY,
+        useValue: HeroListViewModel 
     }
 ];

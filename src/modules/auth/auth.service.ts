@@ -46,8 +46,9 @@ export class AuthService {
             this.getUserTokenCount(user.id)
         ])
 
-        // enduser_auth:26:token:TE1A.220922.010
-        if ((ActiveDevices.length + 1) > (+protocols.max_active_devices) && !ActiveDevices.includes(`enduser_auth:${user.id}:token:${reqbody.device_id}`)) {
+        // enduser_auth:26:token:TE1A.220922.010_9327498723
+        const deviceLoggedinWithThisAcc = this.checkThisDeviceLoggedIn(ActiveDevices, `enduser_auth:${user.id}:token:${reqbody.device_id}_`)
+        if ((ActiveDevices.length + 1) > (+protocols.max_active_devices) && !deviceLoggedinWithThisAcc.incl) {
             // max 3 device already have logged in...
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
@@ -334,6 +335,20 @@ export class AuthService {
         return this.redisClient.del(key)
     }
 
+    checkThisDeviceLoggedIn(arr, matchStr) {
+        let incl = false, key = null
+        arr.some(item=> {
+          let item2 = item.includes(matchStr)
+          if (item2) {
+            incl = true
+            key = item
+            return true
+          }
+          return false
+        })
+        return {incl, key}
+    }
+
     public async login(user) {
 
         const {id, email, mobile, device_id} = user
@@ -344,14 +359,21 @@ export class AuthService {
             this.getUserTokenCount(id)
         ])
 
-        // enduser_auth:26:token:TE1A.220922.010
-        if ((ActiveDevices.length + 1) > (+protocols.max_active_devices) && !ActiveDevices.includes(`enduser_auth:${id}:token:${device_id}`)) {
+        // enduser_auth:26:token:TE1A.220922.010_334723487
+        const deviceLoggedinWithThisAcc = this.checkThisDeviceLoggedIn(ActiveDevices, `enduser_auth:${id}:token:${device_id}_`)
+        if ((ActiveDevices.length + 1) > (+protocols.max_active_devices) && !deviceLoggedinWithThisAcc.incl) {
             // max 3 device already have logged in...
             return { code: 4002, resp_keyword: '3deviceloggedin' }
         }
-
         // const identifier = `${Date.now()}_${this.generateId(10)}`
-        const identifier = device_id
+        // const identifier = device_id
+        const identifier = `${device_id}_${Date.now()}`
+        if (deviceLoggedinWithThisAcc) {
+            this.redisClient.del([
+                deviceLoggedinWithThisAcc.key,
+                deviceLoggedinWithThisAcc.key.replace("token", "refreshToken")
+            ])
+        }
 
         const [access_token, refresh_token] = await Promise.all([ await this.generateToken(tokenData, identifier), await this.generateRefreshToken(tokenData, identifier)]);
         const [decoded, decoded2] = await Promise.all([await this.jwtService.decode(access_token), await this.jwtService.decode(refresh_token)])
