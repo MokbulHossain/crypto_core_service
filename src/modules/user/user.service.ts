@@ -1,6 +1,6 @@
 import { Injectable , Inject} from '@nestjs/common';
-import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel} from '../../models'
-import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY} from '../../config/constants'
+import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, FollowingHeroListViewModel} from '../../models'
+import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY} from '../../config/constants'
 
 import { Op } from 'sequelize';
 
@@ -14,6 +14,7 @@ export class UserService {
         @Inject(PROTOCOL_REPOSITORY) private readonly protocolRepository: typeof ProtocolModel,
         @Inject(COUNTRIES_REPOSITORY) private readonly countriesRepository: typeof CountriesModel,
         @Inject(HEROLISTVIEW_REPOSITORY) private readonly heroRepository: typeof HeroListViewModel,
+        @Inject(FOLLOWINGHEROLISTVIEW_REPOSITORY) private readonly followingheroRepository: typeof FollowingHeroListViewModel,
 
 
     ) { }
@@ -124,6 +125,36 @@ export class UserService {
             offset: (page - 1) * limit,
             limit,
             order: [['user_id', 'desc']]
+        })
+    }
+
+    async followingherolist(page, limit, search, user_id) {
+
+        let conditions = {}
+        if (search) {
+            const isNumeric = /^\d+$/.test(search); // Check if the search contains only digits
+            if (isNumeric) {
+                conditions = {
+                    [Op.or]: [
+                      { name: { [Op.iLike]: `%${search}%` } },
+                      { email: { [Op.iLike]: `%${search}%` } },
+                      { mobile: { [Op.iLike]: `%${search}%` } },
+                    ]
+                }
+            } else {
+                conditions = {
+                    [Op.or]: [
+                      { name: { [Op.iLike]: `%${search}%` } },
+                      { email: { [Op.iLike]: `%${search}%` } }                    
+                    ]
+                }
+            }
+        }
+        return await this.followingheroRepository.findAll({
+            where: {...conditions, user_id},
+            offset: (page - 1) * limit,
+            limit,
+            order: [['follow_at', 'desc']]
         })
     }
 }

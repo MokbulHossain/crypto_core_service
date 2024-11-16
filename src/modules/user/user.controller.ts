@@ -23,12 +23,19 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard)
     @Get('herolist')
-    async list(@Request() req, @Query() reqdata) {
+    async herolist(@Request() req, @Query() reqdata) {
         
         return await this.userService.herolist(reqdata['page'] || 1, reqdata['limit'] || 10, reqdata['search'] || null)
         
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Get('followingherolist')
+    async followingherolist(@Request() req, @Query() reqdata) {
+        
+        return await this.userService.followingherolist(reqdata['page'] || 1, reqdata['limit'] || 10, reqdata['search'] || null, req.user['user_id'])
+        
+    }
     // @UseGuards(JwtAuthGuard)
     // @Post('follow')
     // async follow(@Request() req) {
