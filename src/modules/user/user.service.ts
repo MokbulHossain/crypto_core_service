@@ -98,6 +98,11 @@ export class UserService {
         return await this.countriesRepository.findAll()
     }
 
+    async userDetails(user_id) {
+
+        return await this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}})
+    }
+
     async herolist(page, limit, search) {
 
         let conditions = {}

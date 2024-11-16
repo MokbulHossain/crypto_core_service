@@ -368,7 +368,7 @@ export class AuthService {
         // const identifier = `${Date.now()}_${this.generateId(10)}`
         // const identifier = device_id
         const identifier = `${device_id}_${Date.now()}`
-        if (deviceLoggedinWithThisAcc) {
+        if (deviceLoggedinWithThisAcc.incl) {
             this.redisClient.del([
                 deviceLoggedinWithThisAcc.key,
                 deviceLoggedinWithThisAcc.key.replace("token", "refreshToken")
