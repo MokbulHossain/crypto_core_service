@@ -39,7 +39,27 @@ export class HeroListViewModel extends Model{
     @Column({
         type: DataType.FLOAT
     })
+    win_ratio_free: number;
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    win_ratio_premium: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
     roi: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
+    roi_free: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
+    roi_premium: number;
 
     @Column({
         type: DataType.STRING
@@ -61,4 +81,8 @@ export class HeroListViewModel extends Model{
     })
     flag_url: string;
 
+    @Column({
+        type: DataType.TEXT
+    })
+    bio: string
 }

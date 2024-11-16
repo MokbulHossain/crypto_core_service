@@ -1,6 +1,8 @@
 import { Injectable , Inject} from '@nestjs/common';
-import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, FollowingHeroListViewModel} from '../../models'
-import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY} from '../../config/constants'
+import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, 
+    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel} from '../../models'
+import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, 
+    USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY} from '../../config/constants'
 
 import { Op } from 'sequelize';
 
@@ -15,7 +17,8 @@ export class UserService {
         @Inject(COUNTRIES_REPOSITORY) private readonly countriesRepository: typeof CountriesModel,
         @Inject(HEROLISTVIEW_REPOSITORY) private readonly heroRepository: typeof HeroListViewModel,
         @Inject(FOLLOWINGHEROLISTVIEW_REPOSITORY) private readonly followingheroRepository: typeof FollowingHeroListViewModel,
-
+        @Inject(FOLLOWERMAP_REPOSITORY) private readonly followermapRepository: typeof FollowerMapModel,
+        @Inject(SUBSCRIBERMAP_REPOSITORY) private readonly subscribermapRepository: typeof SubscriberMapModel,
 
     ) { }
 
@@ -103,6 +106,30 @@ export class UserService {
         return await this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}})
     }
 
+    async heroDetails(user_id, hero_id) {
+
+        const [userData, follower, subscriber] = await Promise.all([
+            this.heroRepository.findOne({
+                where : { user_id: hero_id}
+            }),
+    
+            this.followermapRepository.findOne({
+                where : { user_id, follower_id: hero_id }
+            }),
+    
+            this.subscribermapRepository.findOne({
+                where : { user_id, subscriber_id: hero_id }
+            })
+        ])
+
+        return {
+            ...userData['dataValues'],
+            follow: follower ? true : false,
+            subscribe: subscriber ? true : false
+        }
+
+    }
+
     async herolist(page, limit, search) {
 
         let conditions = {}
@@ -161,5 +188,19 @@ export class UserService {
             limit,
             order: [['follow_at', 'desc']]
         })
+    }
+
+    async follow(user_id, follower_id) {
+
+        const findMap = await this.followermapRepository.findOne({ where: { user_id, follower_id}})
+        if (findMap) {
+            return { code: 4002, resp_keyword: 'followermapexist' }
+        }
+        await this.followermapRepository.create({
+            user_id,
+            follower_id
+        })
+
+        return { code: 100, resp_keyword: 'Ok' }
     }
 }

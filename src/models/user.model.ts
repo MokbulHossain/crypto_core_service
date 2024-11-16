@@ -44,7 +44,27 @@ export class UserModel extends Model{
     @Column({
         type: DataType.FLOAT
     })
+    win_ratio_free: number;
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    win_ratio_premium: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
     roi: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
+    roi_free: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
+    roi_premium: number;
     
     @Column({
         type: DataType.INTEGER
@@ -73,6 +93,11 @@ export class UserModel extends Model{
     champion_coin: number;
 
     @Column({
+        type: DataType.FLOAT
+    })
+    gems_coin: number
+
+    @Column({
         type: DataType.DOUBLE
     })
     lat: number;
@@ -92,4 +117,8 @@ export class UserModel extends Model{
     })
     locked_at: Date;
 
+    @Column({
+        type: DataType.TEXT
+    })
+    bio: string
 }

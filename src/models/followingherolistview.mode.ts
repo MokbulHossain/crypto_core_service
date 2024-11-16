@@ -45,7 +45,27 @@ export class FollowingHeroListViewModel extends Model{
     @Column({
         type: DataType.FLOAT
     })
+    win_ratio_free: number;
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    win_ratio_premium: number;
+
+    @Column({
+        type: DataType.FLOAT
+    })
     roi: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
+    roi_free: number;
+
+    @Column({
+        type: DataType.DOUBLE
+    })
+    roi_premium: number;
 
     @Column({
         type: DataType.STRING
@@ -72,4 +92,8 @@ export class FollowingHeroListViewModel extends Model{
     })
     follow_at: Date
 
+    @Column({
+        type: DataType.TEXT
+    })
+    bio: string
 }
