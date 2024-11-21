@@ -19,6 +19,10 @@ export class LogModel extends Model {
   })
   level: string;
   @Column({
+    type: DataType.STRING(255),
+  })
+  label: string;
+  @Column({
     type: DataType.TEXT,
   })
   message: string;

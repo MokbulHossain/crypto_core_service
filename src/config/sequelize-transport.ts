@@ -26,7 +26,8 @@ export class SequelizeTransport extends Transport {
   }
 
   async log(info, callback) {
-    let { level, message, transactionid_for_log = null, ...meta } = info;
+    console.log(info)
+    let { level, message, transactionid_for_log = null, label=null, ...meta } = info;
     transactionid_for_log = transactionid_for_log || ((message && typeof message == 'object') ? message['transactionid_for_log'] : null)
     if (!this.LogModel) {
       console.error('LogModel is not initialized');
@@ -39,6 +40,7 @@ export class SequelizeTransport extends Transport {
         level,
         message,
         meta,
+        label,
         timestamp: new Date(),
         transactionid : transactionid_for_log
       }, { logging: false})

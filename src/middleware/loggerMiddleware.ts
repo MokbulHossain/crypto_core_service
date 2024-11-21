@@ -16,8 +16,11 @@ export class LoggerMiddleware implements NestMiddleware {
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.split(" ")[1];
       try {
-        // const decoded = jwt.decode(token) as { transactionId? };
-        // transactionId = decoded?.transactionId || '';
+        
+          const base64Url = token.split('.')[1]; // token you get
+          const base64 = base64Url.replace('-', '+').replace('_', '/');
+          const decoded = JSON.parse(Buffer.from(base64, 'base64').toString('binary'));
+          transactionId = decoded?.user_id || '';
       } catch (error) {
         console.error("Error decoding token:", error);
       }
