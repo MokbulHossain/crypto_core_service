@@ -26,7 +26,6 @@ export class SequelizeTransport extends Transport {
   }
 
   async log(info, callback) {
-    console.log(info)
     let { level, message, transactionid_for_log = null, label=null, ...meta } = info;
     transactionid_for_log = transactionid_for_log || ((message && typeof message == 'object') ? message['transactionid_for_log'] : null)
     if (!this.LogModel) {

@@ -17,6 +17,7 @@ import { tap, catchError,map,timeout } from 'rxjs/operators';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import {OK, UNPROCESSABLE_ENTITY, INTERNAL_SERVER_ERROR,NOT_FOUND, UNAUTHORIZED,BAD_REQUEST} from './responseHelper'
 import { Request, Response } from 'express'
+import {responseBodyLog} from '../config/winstonLog'
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -90,6 +91,8 @@ export class ErrorsInterceptor implements NestInterceptor {
 export class TransformInterceptor implements NestInterceptor {
   intercept( context: ExecutionContext, next: CallHandler ): Observable<any> {
     const req = context.switchToHttp().getRequest();
+    const method = req.method;
+
     return next
       .handle()
       .pipe(
@@ -100,6 +103,9 @@ export class TransformInterceptor implements NestInterceptor {
 
             message = data['res_message']
             delete data['res_message']
+          }
+          if (method !== 'GET' && method !== 'get') { 
+            responseBodyLog(OK(data, 200, message, req))
           }
           return OK(data, 200, message, req)
 

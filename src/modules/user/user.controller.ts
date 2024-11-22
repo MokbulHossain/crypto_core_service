@@ -39,6 +39,14 @@ export class UserController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('herolistpagedata')
+    async herolistpagedata(@Request() req) {
+        
+        return await this.userService.herolistpagedata()
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get('herolist')
     async herolist(@Request() req, @Query() reqdata) {
         

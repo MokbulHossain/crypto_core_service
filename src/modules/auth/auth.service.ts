@@ -1,7 +1,7 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { REDIS_CONNECTION} from '../../config/constants'
+import { REDIS_CONNECTION, DATABASE_CONNECTION} from '../../config/constants'
 import { UserService } from '../user/user.service'
 import {LoginAuthDto, RegisterAuthDto, ResendOTPDto, OTPValidateDto, ForgetPassAuthDto} from '../../dto'
 import { genRandomInRange } from '@helpers/utils'
@@ -10,14 +10,16 @@ import { winstonLog } from '@config/winstonLog'
 import { NotificationService } from './notification.service'
 import moment from 'moment';
 
+
 @Injectable()
 export class AuthService {
     constructor(
         @Inject(REDIS_CONNECTION) private redisClient: any,
         private readonly jwtService: JwtService,
         private readonly userService: UserService,
-        private readonly notificationService: NotificationService
+        private readonly notificationService: NotificationService,
     ) { }
+
 
     async validateAuth(email: string, password: string, reqbody) {
         
@@ -205,10 +207,11 @@ export class AuthService {
 
             case "REGISTRATION" :
                 const tempuser = await this.userService.getSingleTempuser(deviceinfo.email)
-                delete tempuser.id
-                console.log('tempuser => ', tempuser)
+                const tempuserData = {...tempuser['dataValues']}
+                delete tempuserData.id
+                console.log('tempuser => ', tempuserData)
                 const [newuser,] = await Promise.all([
-                    this.userService.create({...tempuser['dataValues']}),
+                    this.userService.create({...tempuserData }),
                     this.userService.deleteTempuser(deviceinfo.email)
                 ])
                 userData = newuser

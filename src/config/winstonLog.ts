@@ -7,9 +7,12 @@ import { sequelizeWriteInstance as sequelize } from './sequelize-instance'; // E
 
 const { combine, timestamp, label, printf, prettyPrint,errors,colorize  } = format
 
-const myFormat = printf(({ level, message, label, timestamp }) => {
+const myFormat = printf(({ level, message, label, timestamp, ...meta }) => {
+  const serializedMessage = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
 
-  return `${timestamp} [${label}] ${level}: ${message}`;
+  // const serializedMeta = Object.keys(meta).length > 0 ? ` | Meta: ${JSON.stringify(meta, null, 2)}` : '';
+
+  return `${timestamp} [${label}] ${level}: ${serializedMessage}`;
 })
 
 const infotransport = new DailyRotateFile({
@@ -108,7 +111,7 @@ export const requestBodyLog = (requestObj) => {
 }
 export const responseBodyLog = (responseObj) => {
   //log response body...
-//  winstonLog.log('info',' Response Body :  %o', responseObj || {}, { label: 'Response' })
+   winstonLog.log('info',' Response Body :  %o', responseObj || {}, { label: 'Response' })
 }
 
 export const HttpUrlLog = (message) => {
@@ -118,5 +121,5 @@ export const HttpUrlLog = (message) => {
 
 export const HttpPortLog = (port) => {
   //log http info...
-  winstonLog.log('debug','Nest Application Run In Port %s ',port, { label: 'Route' })
+  winstonLog.log('debug','Nest Application Run In Port %s ',port, { label: 'Port' })
  } 

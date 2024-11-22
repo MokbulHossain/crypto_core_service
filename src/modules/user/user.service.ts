@@ -2,9 +2,12 @@ import { Injectable , Inject} from '@nestjs/common';
 import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, 
     FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel} from '../../models'
 import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, 
-    USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY} from '../../config/constants'
+    USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY,
+    DATABASE_CONNECTION} from '../../config/constants'
 
 import { Op } from 'sequelize';
+import { QueryTypes, Sequelize } from 'sequelize';
+
 
 @Injectable()
 export class UserService {
@@ -19,6 +22,7 @@ export class UserService {
         @Inject(FOLLOWINGHEROLISTVIEW_REPOSITORY) private readonly followingheroRepository: typeof FollowingHeroListViewModel,
         @Inject(FOLLOWERMAP_REPOSITORY) private readonly followermapRepository: typeof FollowerMapModel,
         @Inject(SUBSCRIBERMAP_REPOSITORY) private readonly subscribermapRepository: typeof SubscriberMapModel,
+        @Inject(DATABASE_CONNECTION) private DB: Sequelize
 
     ) { }
 
@@ -106,6 +110,49 @@ export class UserService {
         return await this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}})
     }
 
+    async herolistpagedata() {
+
+        const suggestedHerosQuery = `select * from suggested_hero_view`
+        const topHerosQuery = `select * from top_hero_view`
+        const tierwiseuserQuery = `select * from tierwise_ranked_users_view`
+
+        const [suggestedHeros, topHeros, tierwiseusers] = await Promise.all([
+            this.DB.query(suggestedHerosQuery, { type: QueryTypes.SELECT}),
+            this.DB.query(topHerosQuery, { type: QueryTypes.SELECT}),
+            this.DB.query(tierwiseuserQuery, { type: QueryTypes.SELECT})
+        ])
+
+        let tiers = tierwiseusers.map( item => ({
+            tier_id: (+item['tier_id']),
+            tier_name: item['tier_name'],
+            tier_icon: item['tier_icon'], 
+        }))
+
+        let tierwiseusersData = [
+            {
+                tier_id: -1,
+                tier_name: "Monthly Top Hero",
+                tier_icon: null, 
+                user_list: topHeros
+            },
+            ...tierwiseusers
+        ]
+
+        tiers = [
+            {
+                tier_id: -1,
+                tier_name: "Monthly Top Hero",
+                tier_icon: null, 
+            },
+            ...tiers
+        ]
+
+        return {
+            suggested_heros: suggestedHeros,
+            tiers,
+            tierwiseusersData 
+        }
+    }
     async heroDetails(user_id, hero_id) {
 
         const [userData, follower, subscriber] = await Promise.all([
