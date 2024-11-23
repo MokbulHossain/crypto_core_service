@@ -78,7 +78,7 @@ export class AuthService {
         }
 
         const password = await this.hashPassword(regbody.password)
-        const createData = await this.userService.tempcreate({...regbody, password})
+        const createData = await this.userService.tempcreate({...regbody, countries_id: regbody.countrie_id, password})
         const otp = genRandomInRange(100000, 999999)
         console.log('otp => ', otp)
         const user_id = createData.id
