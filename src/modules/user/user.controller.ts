@@ -63,10 +63,33 @@ export class UserController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('subscribeherolist')
+    async subscribeherolist(@Request() req, @Query() reqdata) {
+        
+        return await this.userService.subscribeherolist(reqdata['page'] || 1, reqdata['limit'] || 10, reqdata['search'] || null, req.user['user_id'])
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Post('follow')
     async follow(@Request() req, @Body() reqdata) {
         
         const user = await this.userService.follow(req.user['user_id'], reqdata['follower_id'])
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('subscribe')
+    async subscribe(@Request() req, @Body() reqdata) {
+        
+        const user = await this.userService.subscribe(req.user['user_id'], reqdata['subscriber_id'])
        
         if (user.code !== 100) {
 

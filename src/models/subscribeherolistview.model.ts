@@ -1,30 +1,26 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript';
 
-@Table({ tableName: 'users' })
+@Table({ tableName: 'subscribeherolistview' })
 
-export class UserModel extends Model{
+export class SubscribeHeroListViewModel extends Model{
     @Column({
         type: DataType.BIGINT,
         allowNull: false,
         autoIncrement : true,
         primaryKey : true
     })
-    id: bigint;
+    user_id: bigint;
+
+    @Column({
+        type: DataType.BIGINT,
+        allowNull: false
+    })
+    subscriber_id: bigint;
 
     @Column({
         type: DataType.TEXT
     })
     email: string;
-
-    @Column({
-        type: DataType.TEXT
-    })
-    username: string;
-
-    @Column({
-        type: DataType.TEXT
-    })
-    password: string;
 
     @Column({
         type: DataType.TEXT
@@ -57,7 +53,7 @@ export class UserModel extends Model{
     win_ratio_premium: number;
 
     @Column({
-        type: DataType.DOUBLE
+        type: DataType.FLOAT
     })
     roi: number;
 
@@ -70,57 +66,31 @@ export class UserModel extends Model{
         type: DataType.DOUBLE
     })
     roi_premium: number;
-    
-    @Column({
-        type: DataType.INTEGER
-    })
-    tier_id: number;
 
     @Column({
-        type: DataType.DATE,
-        defaultValue: new Date()
+        type: DataType.STRING
     })
-    registrtiondate: Date;
+    tier_name: string;
 
     @Column({
-        type: DataType.SMALLINT
+        type: DataType.STRING
     })
-    status: number;
+    tier_icon: string;
 
     @Column({
-        type: DataType.FLOAT
+        type: DataType.STRING
     })
-    hero_coin: number;
+    country_name: string;
 
     @Column({
-        type: DataType.FLOAT
+        type: DataType.STRING
     })
-    champion_coin: number;
-
-    @Column({
-        type: DataType.FLOAT
-    })
-    gems_coin: number
-
-    @Column({
-        type: DataType.DOUBLE
-    })
-    lat: number;
-
-    @Column({
-        type: DataType.DOUBLE
-    })
-    long: number;
-
-    @Column({
-        type: DataType.INTEGER
-    })
-    countries_id: number;
+    flag_url: string;
 
     @Column({
         type: DataType.DATE
     })
-    locked_at: Date;
+    subscribe_at: Date
 
     @Column({
         type: DataType.TEXT

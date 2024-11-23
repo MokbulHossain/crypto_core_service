@@ -34,6 +34,9 @@ export class RegisterAuthDto extends IntersectionType(LoginAuthDto) {
     readonly name: string;
 
     @IsNotEmpty()
+    readonly username: string;
+
+    @IsNotEmpty()
     readonly mobile: string;
 
     @IsNotEmpty()

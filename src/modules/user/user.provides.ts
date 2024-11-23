@@ -1,7 +1,8 @@
 import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, 
-    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel} from '../../models'
+    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel, SubscribeHeroListViewModel} from '../../models'
 import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, 
-    USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY} from '../../config/constants'
+    USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY,
+    SUBSCRIBEHEROLISTVIEW_REPOSITORY} from '../../config/constants'
 
 export const UserProviders = [
     {
@@ -37,6 +38,10 @@ export const UserProviders = [
     {
         provide: FOLLOWINGHEROLISTVIEW_REPOSITORY,
         useValue: FollowingHeroListViewModel 
+    },
+    {
+        provide: SUBSCRIBEHEROLISTVIEW_REPOSITORY,
+        useValue: SubscribeHeroListViewModel 
     },
     {
         provide: FOLLOWERMAP_REPOSITORY,

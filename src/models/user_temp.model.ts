@@ -19,6 +19,11 @@ export class UserTempModel extends Model{
     @Column({
         type: DataType.TEXT
     })
+    username: string;
+
+    @Column({
+        type: DataType.TEXT
+    })
     password: string;
 
     @Column({

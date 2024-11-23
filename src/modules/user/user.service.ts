@@ -1,9 +1,9 @@
 import { Injectable , Inject} from '@nestjs/common';
 import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, 
-    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel} from '../../models'
+    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel, SubscribeHeroListViewModel} from '../../models'
 import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, 
     USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY,
-    DATABASE_CONNECTION} from '../../config/constants'
+    DATABASE_CONNECTION, SUBSCRIBEHEROLISTVIEW_REPOSITORY} from '../../config/constants'
 
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
@@ -22,6 +22,8 @@ export class UserService {
         @Inject(FOLLOWINGHEROLISTVIEW_REPOSITORY) private readonly followingheroRepository: typeof FollowingHeroListViewModel,
         @Inject(FOLLOWERMAP_REPOSITORY) private readonly followermapRepository: typeof FollowerMapModel,
         @Inject(SUBSCRIBERMAP_REPOSITORY) private readonly subscribermapRepository: typeof SubscriberMapModel,
+        @Inject(SUBSCRIBEHEROLISTVIEW_REPOSITORY) private readonly subscribeViewRepository: typeof SubscribeHeroListViewModel,
+
         @Inject(DATABASE_CONNECTION) private DB: Sequelize
 
     ) { }
@@ -237,6 +239,36 @@ export class UserService {
         })
     }
 
+    async subscribeherolist(page, limit, search, user_id) {
+
+        let conditions = {}
+        if (search) {
+            const isNumeric = /^\d+$/.test(search); // Check if the search contains only digits
+            if (isNumeric) {
+                conditions = {
+                    [Op.or]: [
+                      { name: { [Op.iLike]: `%${search}%` } },
+                      { email: { [Op.iLike]: `%${search}%` } },
+                      { mobile: { [Op.iLike]: `%${search}%` } },
+                    ]
+                }
+            } else {
+                conditions = {
+                    [Op.or]: [
+                      { name: { [Op.iLike]: `%${search}%` } },
+                      { email: { [Op.iLike]: `%${search}%` } }                    
+                    ]
+                }
+            }
+        }
+        return await this.subscribeViewRepository.findAll({
+            where: {...conditions, user_id},
+            offset: (page - 1) * limit,
+            limit,
+            order: [['subscribe_at', 'desc']]
+        })
+    }
+
     async follow(user_id, follower_id) {
 
         const findMap = await this.followermapRepository.findOne({ where: { user_id, follower_id}})
@@ -246,6 +278,20 @@ export class UserService {
         await this.followermapRepository.create({
             user_id,
             follower_id
+        })
+
+        return { code: 100, resp_keyword: 'Ok' }
+    }
+
+    async subscribe(user_id, subscriber_id) {
+    
+        const findMap = await this.subscribermapRepository.findOne({ where: { user_id, subscriber_id}})
+        if (findMap) {
+            return { code: 4002, resp_keyword: 'subscribermapexist' }
+        }
+        await this.subscribermapRepository.create({
+            user_id,
+            subscriber_id
         })
 
         return { code: 100, resp_keyword: 'Ok' }
