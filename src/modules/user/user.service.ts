@@ -108,8 +108,14 @@ export class UserService {
     }
 
     async userDetails(user_id) {
-
+        
         return await this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}})
+    }
+
+    async userDetailsV2(user_id){
+        return await this.heroRepository.findOne({
+            where : { user_id}
+        })
     }
 
     async herolistpagedata() {

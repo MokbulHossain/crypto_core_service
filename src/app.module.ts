@@ -8,6 +8,7 @@ import {interceptorProviders} from './helpers/interceptor'
 import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from './config/redis/redis.module'
 import { UserModule } from './modules/user/user.module';
+import { SignalModule } from './modules/signal/signal.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { UserModule } from './modules/user/user.module';
     DatabaseModule,
     RedisModule,
     AuthModule,
-    UserModule
+    UserModule,
+    SignalModule
   ],
   controllers: [
 
