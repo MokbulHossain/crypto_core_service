@@ -1,4 +1,4 @@
-import { IsNotEmpty, ValidateIf, MinLength, IsEmail, IsEnum, isEmpty, isBoolean, IsOptional } from 'class-validator';
+import { IsNotEmpty, ValidateIf, MinLength, IsEmail, IsEnum, isEmpty, isBoolean, IsOptional, IsArray, ArrayMinSize, ArrayNotEmpty, ArrayMaxSize, IsNumber} from 'class-validator';
 import { Type } from 'class-transformer';
 import {IntersectionType } from  '@nestjs/mapped-types';
 
@@ -10,6 +10,11 @@ enum PackageType {
 enum SignalType {
     Soot = 'Soot',
     Futures = 'Futures',
+}
+
+enum SignalSubType {
+    Long = 'Long',
+    Short = 'Short',
 }
 
 enum RiskType {
@@ -35,6 +40,13 @@ export class SignalCreateDto {
     readonly signal_type: SignalType;
 
     @ValidateIf(o => o.signal_type === 'Futures')
+    @IsNotEmpty() 
+    @IsEnum(SignalSubType, {
+        message: 'signal_sub_type must be either Long or Short',
+    })
+    readonly signal_sub_type: SignalSubType;
+
+    @ValidateIf(o => o.signal_type === 'Futures')
     @IsNotEmpty()
     readonly leverage: number = null
 
@@ -49,4 +61,11 @@ export class SignalCreateDto {
         message: 'signal_type must be either High or Medium or Low',
     })
     readonly risk_type: RiskType;
+
+    @IsArray()
+    @ArrayNotEmpty() // Ensures the array is not empty
+    @ArrayMinSize(1) // Minimum 2 elements in the array
+    @ArrayMaxSize(3) // Maximum 5 elements in the array
+    @IsNumber({}, { each: true }) // Ensures each item is a number
+    signal_targets: number[];
 }

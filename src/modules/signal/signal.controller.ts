@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards, Request, Post, Query, Body, BadRequestExcep
 import { SignalService } from './signal.service'
 import { JwtAuthGuard } from '../../middleware/guards'
 import {UNAUTHORIZED, BAD_REQUEST} from '../../helpers/responseHelper'
+import { SignalCreateDto } from '../../dto'
 
 @Controller('signal')
 export class SignalController {
@@ -18,17 +19,18 @@ export class SignalController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Post('create')
-    async create(@Request() req, @Body() reqdata) {
+    @Post('coin_price')
+    async coinPrice(@Request() req, @Body() reqdata) {
         
-        // const user = await this.signalService.create(req.user['user_id'], reqdata)
-       
-        // if (user.code !== 100) {
+       return await this.signalService.coinPrice(reqdata['coin_name'])
+        
+    }
 
-        //     throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
-        // }
-
-        // return { res_message: req.i18n.__(user.resp_keyword)}
+    @UseGuards(JwtAuthGuard)
+    @Post('create')
+    async create(@Request() req, @Body() reqdata: SignalCreateDto) {
+        
+       return await this.signalService.create(req.user['user_id'], reqdata)
         
     }
 }

@@ -6,9 +6,9 @@ import {responseBodyLog} from '../config/winstonLog'
 export const OK = (payload,statusCode, message, req) =>{
 
     const response =  {
-        issuccess:true,
+        issuccess: statusCode >= 200 && statusCode <= 300,
         statusCode : statusCode || 200,
-        payload: payload || null,
+        payload: payload || (payload == 0 ? 0 : null),
         message: message || req.i18n.__('Ok'),
     }
     //responseBodyLog(response)

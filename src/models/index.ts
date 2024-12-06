@@ -10,3 +10,7 @@ export * from './followingherolistview.model'
 export * from './subscribeherolistview.model'
 export * from './follower_map.model'
 export * from './subscriber_map.model'
+
+export * from './signals.model'
+export * from './signal_targets.model'
+export * from './coin_type.model'
