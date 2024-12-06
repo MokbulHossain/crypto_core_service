@@ -108,8 +108,17 @@ export class UserService {
     }
 
     async userDetails(user_id) {
-        
-        return await this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}})
+        const [data, data2]  = await Promise.all([
+            this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}}),
+            this.heroRepository.findOne({
+                where : { user_id}
+            })
+        ])
+
+        return {
+            ...data.dataValues,
+            ...data2.dataValues
+        }
     }
 
     async userDetailsV2(user_id){
