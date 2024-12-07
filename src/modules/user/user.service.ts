@@ -117,14 +117,14 @@ export class UserService {
 
         return {
             ...data.dataValues,
-            ...data2.dataValues
+            ...data2.dataValues,
+            progress: {
+                title: "Gold",
+                subtitle: "1 of 4",
+                total: 4,
+                complete: 1
+            }
         }
-    }
-
-    async userDetailsV2(user_id){
-        return await this.heroRepository.findOne({
-            where : { user_id}
-        })
     }
 
     async herolistpagedata() {

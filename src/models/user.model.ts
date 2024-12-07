@@ -126,4 +126,9 @@ export class UserModel extends Model{
         type: DataType.TEXT
     })
     bio: string
+
+    @Column({
+        type: DataType.INTEGER
+    })
+    follower:number
 }
