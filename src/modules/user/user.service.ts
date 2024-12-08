@@ -8,7 +8,6 @@ import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PRO
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
 
-
 @Injectable()
 export class UserService {
     constructor(
@@ -346,5 +345,29 @@ export class UserService {
         })
 
         return { code: 100, resp_keyword: 'Ok' }
+    }
+
+    async referral_earning_list(user_id, page, limit ) {
+
+        return [
+            {
+                id: 1,
+                refer_username: 'username',
+                spent_gem: 0,
+                earning: 0
+            },
+            {
+                id: 2,
+                refer_username: 'username',
+                spent_gem: 0,
+                earning: 0
+            },
+            {
+                id: 3,
+                refer_username: 'username',
+                spent_gem: 0,
+                earning: 0
+            }
+        ]
     }
 }

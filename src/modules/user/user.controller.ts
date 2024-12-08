@@ -54,6 +54,14 @@ export class UserController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('referral_earning_list')
+    async referral_earning_list(@Request() req, @Query() reqdata) {
+        
+        return await this.userService.referral_earning_list(req.user['user_id'], reqdata['page'] || 1, reqdata['limit'] || 10)
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get('herodetails')
     async heroDetails(@Request() req, @Query() reqdata) {
         
