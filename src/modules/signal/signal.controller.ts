@@ -34,12 +34,12 @@ export class SignalController {
         
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Get('create_signal_config')
-    async list(@Request() req, @Body() reqdata) {
+    // @UseGuards(JwtAuthGuard)
+    // @Get('create_signal_config')
+    // async list(@Request() req, @Body() reqdata) {
         
-        return await this.signalService.list()
+    //     return await this.signalService.list(user_id, page, limit, reqdata)
        
         
-    }
+    // }
 }
