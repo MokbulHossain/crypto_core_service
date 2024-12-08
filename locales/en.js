@@ -40,5 +40,6 @@
 	"otpsend": "OTP is send to your email address, please validate it",
 	"3deviceloggedin": "Maximum device logged in with this account",
 	"followermapexist": "You already follow this hero",
-	"subscribermapexist": "You already subscribe this hero"
+	"subscribermapexist": "You already subscribe this hero",
+	"refercodeexist": "This refer code already exist, please try with another code."
 }

@@ -42,7 +42,14 @@ export class UserController {
     @Post('referInfo')
     async createReferInfo(@Request() req, @Body() reqdata) {
         
-        return await this.userService.createReferInfo(req.user['user_id'], reqdata['refer_code'])
+        const user = await this.userService.createReferInfo(req.user['user_id'], reqdata['refer_code'])
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
         
     }
 

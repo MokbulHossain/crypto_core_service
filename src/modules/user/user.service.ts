@@ -333,12 +333,18 @@ export class UserService {
 
     async createReferInfo(user_id, refer_code) {
 
+        const data = await this.userRepository.findOne({
+            where: { refer_code }
+        })
+        if (data && data.id !== user_id) {
+            return { code: 4000, resp_keyword: 'refercodeexist' }
+        }
         this.userRepository.update({
             refer_code: refer_code
         }, {
             where: { id: user_id }
         })
 
-        return true
+        return { code: 100, resp_keyword: 'Ok' }
     }
 }
