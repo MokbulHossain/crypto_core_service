@@ -1,4 +1,4 @@
-import { IsNotEmpty, ValidateIf, MinLength, IsEmail, IsEnum, isEmpty, isBoolean, IsOptional, IsArray, ArrayMinSize, ArrayNotEmpty, ArrayMaxSize, IsNumber} from 'class-validator';
+import { IsNotEmpty, ValidateIf, MinLength, IsEmail, IsEnum, isEmpty, isBoolean, IsOptional, IsArray, ArrayMinSize, ArrayNotEmpty, ArrayMaxSize, IsNumber, IsNumberString} from 'class-validator';
 import { Type } from 'class-transformer';
 import {IntersectionType } from  '@nestjs/mapped-types';
 
@@ -7,7 +7,19 @@ enum PackageType {
     Premium = 'Premium',
 }
 
+enum PackageTypeForList {
+    All = 'All',
+    Free = 'Free',
+    Premium = 'Premium',
+}
+
 enum SignalType {
+    Soot = 'Soot',
+    Futures = 'Futures',
+}
+
+enum SignalTypeForList {
+    All = 'All',
     Soot = 'Soot',
     Futures = 'Futures',
 }
@@ -68,4 +80,34 @@ export class SignalCreateDto {
     @ArrayMaxSize(3) // Maximum 5 elements in the array
     @IsNumber({}, { each: true }) // Ensures each item is a number
     signal_targets: number[];
+}
+
+
+export class SignalListDto {
+
+    @IsOptional()
+    @IsNumberString()
+    readonly hero_id : string
+
+    @IsNotEmpty() 
+    @IsEnum(PackageTypeForList, {
+        message: 'package_type must be either All or Free or Premium',
+    })
+    readonly package_type: PackageType;
+
+    @IsNotEmpty() 
+    @IsEnum(SignalTypeForList, {
+        message: 'signal_type must be either All or Soot or Futures',
+    })
+    readonly signal_type: SignalType;
+
+    @IsNotEmpty() 
+    @IsNumberString()
+    readonly status: string
+}
+
+export class SignalUnlockDto {
+    @IsNotEmpty() 
+    @IsNumberString()
+    readonly signal_id : string
 }

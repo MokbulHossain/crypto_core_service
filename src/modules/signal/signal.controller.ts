@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards, Request, Post, Query, Body, BadRequestExcep
 import { SignalService } from './signal.service'
 import { JwtAuthGuard } from '../../middleware/guards'
 import {UNAUTHORIZED, BAD_REQUEST} from '../../helpers/responseHelper'
-import { SignalCreateDto } from '../../dto'
+import { SignalCreateDto, SignalListDto, SignalUnlockDto } from '../../dto'
 
 @Controller('signal')
 export class SignalController {
@@ -34,12 +34,27 @@ export class SignalController {
         
     }
 
-    // @UseGuards(JwtAuthGuard)
-    // @Get('create_signal_config')
-    // async list(@Request() req, @Body() reqdata) {
+    @UseGuards(JwtAuthGuard)
+    @Get('list')
+    async list(@Request() req, @Query() reqdata: SignalListDto) {
         
-    //     return await this.signalService.list(user_id, page, limit, reqdata)
+        return await this.signalService.list(req.user['user_id'], +(reqdata['page'] || 1), +(reqdata['limit'] || 10), reqdata)
        
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('targets')
+    async targets(@Request() req, @Query() reqdata: SignalUnlockDto) {
         
-    // }
+        return await this.signalService.targets(reqdata['signal_id'])
+       
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('unlock')
+    async unlock(@Request() req, @Body() reqdata: SignalUnlockDto) {
+        
+       return await this.signalService.unlock(req.user['user_id'], reqdata['signal_id'])
+        
+    }
 }

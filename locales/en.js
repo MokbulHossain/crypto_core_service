@@ -41,5 +41,11 @@
 	"3deviceloggedin": "Maximum device logged in with this account",
 	"followermapexist": "You already follow this hero",
 	"subscribermapexist": "You already subscribe this hero",
-	"refercodeexist": "This refer code already exist, please try with another code."
+	"refercodeexist": "This refer code already exist, please try with another code.",
+	"package_type must be either All or Free or Premium": "package_type must be either All or Free or Premium",
+	"package_type should not be empty": "package_type should not be empty",
+	"signal_type must be either All or Soot or Futures": "signal_type must be either All or Soot or Futures",
+	"signal_type should not be empty": "signal_type should not be empty",
+	"status should not be empty": "status should not be empty",
+	"status must be a number string": "status must be a number string"
 }

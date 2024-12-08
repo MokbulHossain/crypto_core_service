@@ -15,3 +15,6 @@ export * from './signals.model'
 export * from './signal_targets.model'
 export * from './coin_type.model'
 export * from './signalview.model'
+export * from './signal_unlock_map.model'
+
+export * from './campaigns.model'

@@ -370,4 +370,37 @@ export class UserService {
             }
         ]
     }
+   //ad mobe champian_coin => 10
+    async addUserCoin(user_id, coin, coin_type, ref) {
+
+        let updateParameter = 'champion_coin'
+        const incrementBy = (+coin)
+
+        if (coin_type === 'hero') {
+           updateParameter = 'hero_coin'
+        }
+        else if (coin_type === 'gem') {
+            updateParameter = 'gems_coin'
+        }
+
+        const query = `insert into coin_history(user_id, coin_type, coin, ref, created_at) VALUES (:user_id, :coin_type, :coin, :ref, :created_at)`
+       
+        Promise.all([
+            this.userRepository.increment(updateParameter, {
+                by: incrementBy,
+                where: { id: user_id },
+                
+            }),
+            this.DB.query(query, {
+                replacements: {
+                    user_id,
+                    coin_type,
+                    coin: incrementBy,
+                    ref,
+                    created_at: new Date(),
+                    transactionid_for_log: user_id
+                }
+            })
+        ])
+    }
 }

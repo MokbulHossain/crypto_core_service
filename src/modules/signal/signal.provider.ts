@@ -1,5 +1,5 @@
-import {SignalModel, SignalTargetModel, CoinTypeModel, SignalViewModel} from '../../models'
-import {SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY, SIGNALVIEW_REPOSITORY} from '../../config/constants'
+import {SignalModel, SignalTargetModel, CoinTypeModel, SignalViewModel, SignalUnlockMapModel} from '../../models'
+import {SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY, SIGNALVIEW_REPOSITORY, SIGNALUNLOKMAP_REPOSITORY} from '../../config/constants'
 
 export const SignalProviders = [
     {
@@ -17,5 +17,9 @@ export const SignalProviders = [
     {
         provide: SIGNALVIEW_REPOSITORY,
         useValue: SignalViewModel
+    },
+    {
+        provide: SIGNALUNLOKMAP_REPOSITORY,
+        useValue: SignalUnlockMapModel
     }
 ]
