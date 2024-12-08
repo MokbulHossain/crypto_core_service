@@ -42,6 +42,10 @@ export class RegisterAuthDto extends IntersectionType(LoginAuthDto) {
     @IsNotEmpty()
     readonly countrie_id: string;
 
+    @IsOptional()
+    readonly used_refer_code: string;
+    
+
 }
 
 enum OTPTYPE {

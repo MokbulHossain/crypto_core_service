@@ -2,11 +2,12 @@ import { Injectable , Inject} from '@nestjs/common';
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
 import { DATABASE_CONNECTION } from '../../config/constants'
-import {SignalModel, SignalTargetModel, CoinTypeModel} from '../../models'
-import {REDIS_CONNECTION, SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY} from '../../config/constants'
+import {SignalModel, SignalTargetModel, CoinTypeModel, SignalViewModel} from '../../models'
+import {REDIS_CONNECTION, SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY, SIGNALVIEW_REPOSITORY} from '../../config/constants'
 import { SignalCreateDto } from '../../dto'
 import axios from 'axios'
 import { winstonLog } from '@config/winstonLog'
+import { UserService } from '../user/user.service'
 
 @Injectable()
 export class SignalService {
@@ -17,6 +18,8 @@ export class SignalService {
         @Inject(SIGNAL_REPOSITORY) private readonly signalRepository: typeof SignalModel,
         @Inject(SIGNAL_TARGET_REPOSITORY) private readonly signalTargetRepository: typeof SignalTargetModel,
         @Inject(COINTYPE_REPOSITORY) private readonly cointypeRepository: typeof CoinTypeModel,
+        @Inject(SIGNALVIEW_REPOSITORY) private readonly signalviewRepository: typeof SignalViewModel,
+        private readonly userService: UserService
 
     ) { }
 
@@ -150,5 +153,64 @@ export class SignalService {
       ])
 
       return true
+    }
+
+   /**
+    *  “hero”_id: 1,
+   "package_type": "Free",
+    "signal_type": "Soot",
+    “status”: 0 => for all
+    * @param user_id 
+    * @param page 
+    * @param limit 
+    * @returns 
+    */
+    async list(user_id, page, limit, reqdata) {
+
+      const hero_id = reqdata['hero_id'] || user_id
+   
+      const conditions = {hero_id}
+
+      if (reqdata['status']) {
+         conditions['status'] = reqdata['status']
+      }
+      if (reqdata['signal_type'] !== 'All') {
+         conditions['signal_type'] = reqdata['signal_type']
+      }
+      if (reqdata['package_type'] !== 'All') {
+         conditions['package_type'] = reqdata['package_type']
+      }
+
+      // check for my signals..
+      if (user_id == hero_id) {
+         return await this.signalviewRepository.findAll({
+            attributes: {
+               include: [[Sequelize.literal('true'), 'unlocked']],
+            },
+            where: {...conditions},
+            include : [
+               {
+                   model : SignalTargetModel,
+                   attributes : ['target', 'status']
+               }
+            ],
+            offset: (page - 1) * limit,
+            limit
+         })
+      }
+      else {
+         // check this hero is my subscriber or not
+         const subscriber = await this.userService.checkSubscriber(user_id, hero_id)
+         if (!subscriber) {
+            // only free signal with unlock status
+            conditions['package_type'] = 'Free'
+
+         }
+         else {
+
+         }
+      }
+
+
     }
 }

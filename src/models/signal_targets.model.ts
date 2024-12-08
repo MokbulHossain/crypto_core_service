@@ -1,5 +1,5 @@
-import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript';
-
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey } from 'sequelize-typescript';
+import { SignalViewModel } from './signalview.model';
 @Table({ tableName: 'signal_targets' })
 
 export class SignalTargetModel extends Model{
@@ -11,6 +11,7 @@ export class SignalTargetModel extends Model{
     })
     id: bigint;
 
+    @ForeignKey(() => SignalViewModel)
     @Column({
         type: DataType.BIGINT,
         allowNull: false

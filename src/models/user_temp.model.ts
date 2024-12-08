@@ -87,4 +87,9 @@ export class UserTempModel extends Model{
     })
     locked_at: Date;
 
+    @Column({
+        type: DataType.TEXT
+    })
+    used_refer_code: string
+
 }

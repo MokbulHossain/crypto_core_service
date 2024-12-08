@@ -33,4 +33,13 @@ export class SignalController {
        return await this.signalService.create(req.user['user_id'], reqdata)
         
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('create_signal_config')
+    async list(@Request() req, @Body() reqdata) {
+        
+        return await this.signalService.list()
+       
+        
+    }
 }

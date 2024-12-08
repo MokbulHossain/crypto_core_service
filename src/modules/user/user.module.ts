@@ -9,6 +9,6 @@ import { UserProviders } from './user.provides'
   imports: [DatabaseModule, RedisModule],
   controllers: [UserController],
   providers: [UserService, ...UserProviders],
-  exports:[UserService]
+  exports:[UserService],
 })
 export class UserModule {}

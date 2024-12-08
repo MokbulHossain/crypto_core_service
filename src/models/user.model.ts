@@ -131,4 +131,14 @@ export class UserModel extends Model{
         type: DataType.INTEGER
     })
     follower:number
+
+    @Column({
+        type: DataType.TEXT
+    })
+    refer_code: string
+
+    @Column({
+        type: DataType.TEXT
+    })
+    used_refer_code: string
 }

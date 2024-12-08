@@ -254,6 +254,11 @@ export class UserService {
         })
     }
 
+    async checkSubscriber(user_id, subscriber_id) {
+
+        return await this.subscribermapRepository.findOne({ where: { user_id, subscriber_id}})
+    }
+
     async subscribeherolist(page, limit, search, user_id) {
 
         let conditions = {}
