@@ -31,6 +31,22 @@ export class UserController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('referInfo')
+    async referInfo(@Request() req) {
+        
+        return await this.userService.referInfo(req.user['user_id'])
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('referInfo')
+    async createReferInfo(@Request() req, @Body() reqdata) {
+        
+        return await this.userService.createReferInfo(req.user['user_id'], reqdata['refer_code'])
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get('herodetails')
     async heroDetails(@Request() req, @Query() reqdata) {
         

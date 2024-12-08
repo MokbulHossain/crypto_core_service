@@ -316,4 +316,29 @@ export class UserService {
 
         return { code: 100, resp_keyword: 'Ok' }
     }
+
+    async referInfo(user_id) {
+
+        const user = await this.userRepository.findOne({ 
+            attributes: ['refer_code'],
+            where: { id: user_id }
+        })
+
+        return {
+            refer_code: user.refer_code || null,
+            invited: 0,
+            earning: 0.4
+        }
+    }
+
+    async createReferInfo(user_id, refer_code) {
+
+        this.userRepository.update({
+            refer_code: refer_code
+        }, {
+            where: { id: user_id }
+        })
+
+        return true
+    }
 }
