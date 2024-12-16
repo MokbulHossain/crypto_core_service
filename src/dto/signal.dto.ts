@@ -14,13 +14,13 @@ enum PackageTypeForList {
 }
 
 enum SignalType {
-    Soot = 'Soot',
+    Spot = 'Spot',
     Futures = 'Futures',
 }
 
 enum SignalTypeForList {
     All = 'All',
-    Soot = 'Soot',
+    Spot = 'Spot',
     Futures = 'Futures',
 }
 
@@ -47,7 +47,7 @@ export class SignalCreateDto {
 
     @IsNotEmpty() 
     @IsEnum(SignalType, {
-        message: 'signal_type must be either Soot or Futures',
+        message: 'signal_type must be either Spot or Futures',
     })
     readonly signal_type: SignalType;
 
@@ -97,7 +97,7 @@ export class SignalListDto {
 
     @IsNotEmpty() 
     @IsEnum(SignalTypeForList, {
-        message: 'signal_type must be either All or Soot or Futures',
+        message: 'signal_type must be either All or Spot or Futures',
     })
     readonly signal_type: SignalType;
 
