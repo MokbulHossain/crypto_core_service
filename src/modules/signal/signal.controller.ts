@@ -57,4 +57,13 @@ export class SignalController {
        return await this.signalService.unlock(req.user['user_id'], reqdata['signal_id'])
         
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('unlock/list')
+    async unlockList(@Request() req, @Query() reqdata: SignalListDto) {
+        
+       return await this.signalService.unlockList(req.user['user_id'], +(reqdata['page'] || 1), +(reqdata['limit'] || 10), reqdata)
+
+        
+    }
 }

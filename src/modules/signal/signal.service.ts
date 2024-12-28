@@ -221,6 +221,32 @@ export class SignalService {
 
     }
 
+    async unlockList(user_id, page, limit, reqdata) {
+
+      const hero_id = reqdata['hero_id'] || user_id
+   
+      let conditions = {}
+
+      if (reqdata['status'] != 0) {
+         conditions['status'] = (+reqdata['status'])
+      }
+      if (reqdata['signal_type'] !== 'All') {
+         conditions['signal_type'] = reqdata['signal_type']
+      }
+      if (reqdata['package_type'] !== 'All') {
+         conditions['package_type'] = reqdata['package_type']
+      }
+         
+      return await this.DB.query(`select * from get_unlock_signals(_user_id :=:user_id::bigint, _offset :=:offset, _limit :=:limit, _conditions :=:conditions::jsonb)`,{
+         replacements: {
+            user_id,
+            offset: (page - 1) * limit,
+            limit,
+            conditions: JSON.stringify(conditions)
+         },
+         type: QueryTypes.SELECT
+      })
+    }
     async targets(signal_id) {
       // select coin_name from signal_view where id = ;
       const [signaldata, targetdata] = await Promise.all([
