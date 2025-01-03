@@ -403,4 +403,41 @@ export class UserService {
             })
         ])
     }
+
+    async subscriptionConfig(user_id) {
+
+        const query = `select id, coin_id from favorite_coins where user_id = :user_id`
+        const query2 = `select * from user_tier_view where user_id = :user_id`
+        const [favorite_coins, subscription_charge_data] = await Promise.all([
+            this.DB.query(query, { type: QueryTypes.SELECT, replacements: { user_id }}),
+            this.DB.query(query2, { type: QueryTypes.SELECT, replacements: { user_id }})
+        ])
+        const subscription_charge = subscription_charge_data[0]['subscription_charge']
+        const subscription_charge_config = subscription_charge_data[0]['coin_for_subscribe'].map(item => {
+            return {
+                subscription_coin: item,
+                is_configure: subscription_charge == item ? true : false
+            }
+        })
+
+     return {subscription_charge_config, favorite_coins}
+            
+    }
+
+    async subscriptionChargeUpdate(user_id, subscription_coin) {
+      
+        const query = `update users set subscription_charge =:subscription_coin where id =:user_id `
+        this.DB.query(query, { type: QueryTypes.SELECT, replacements: { user_id, subscription_coin }})
+        return { code: 100, resp_keyword: 'Ok' }
+    }
+
+    async favoriteCoinAdd(user_id, favorite_coin_ids) {
+      
+        const query = `delete from favorite_coins where user_id =:user_id `
+        await this.DB.query(query, { type: QueryTypes.SELECT, replacements: { user_id }})
+
+        const query2 = `insert into favorite_coins(user_id, coin_id) SELECT :user_id, UNNEST(:favorite_coin_ids::int[])`
+        this.DB.query(query2, { type: QueryTypes.SELECT, replacements: { user_id, favorite_coin_ids:`{${favorite_coin_ids.join(',')}}` }}).catch(e => console.log(e))
+        return { code: 100, resp_keyword: 'Ok' }
+    }
 }

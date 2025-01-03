@@ -130,4 +130,44 @@ export class UserController {
         return { res_message: req.i18n.__(user.resp_keyword)}
         
     }
+
+
+    @UseGuards(JwtAuthGuard)
+    @Get('subscription_config')
+    async subscriptionConfig(@Request() req) {
+        
+        return await this.userService.subscriptionConfig(req.user['user_id'])
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('subscription_charge_update')
+    async subscriptionChargeUpdate(@Request() req, @Body() reqdata) {
+        
+        const user = await this.userService.subscriptionChargeUpdate(req.user['user_id'], reqdata['subscription_coin'])
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('add_favorite_coins')
+    async favoriteCoinAdd(@Request() req, @Body() reqdata) {
+        
+        const user = await this.userService.favoriteCoinAdd(req.user['user_id'], reqdata['favorite_coin_ids'])
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+        
+    }
+
 }
