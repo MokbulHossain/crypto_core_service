@@ -141,4 +141,10 @@ export class UserModel extends Model{
         type: DataType.TEXT
     })
     used_refer_code: string
+
+    @Column({
+        type: DataType.FLOAT,
+        defaultValue: 0
+    })
+    subscription_charge: number
 }

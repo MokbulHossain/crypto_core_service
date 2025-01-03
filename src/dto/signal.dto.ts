@@ -104,6 +104,9 @@ export class SignalListDto {
     @IsNotEmpty() 
     @IsNumberString()
     readonly status: string
+
+    @IsOptional()
+    readonly only_unlocked: string
 }
 
 export class SignalUnlockDto {

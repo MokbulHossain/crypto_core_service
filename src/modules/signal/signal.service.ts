@@ -168,6 +168,10 @@ export class SignalService {
     */
     async list(user_id, page, limit, reqdata) {
 
+      const only_unlocked = reqdata['only_unlocked'] || false
+      if (only_unlocked && (only_unlocked == 'true' || only_unlocked == 'True' || only_unlocked == true)) {
+         return await this.unlockList(user_id, page, limit, reqdata)
+      }
       const hero_id = reqdata['hero_id'] || user_id
    
       const conditions = {hero_id}
