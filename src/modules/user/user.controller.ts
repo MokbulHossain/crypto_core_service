@@ -170,4 +170,19 @@ export class UserController {
         
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Post('update_bio')
+    async updateBio(@Request() req, @Body() reqdata) {
+        
+        const user = await this.userService.updateBio(req.user['user_id'], reqdata['bio'])
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+        
+    }
+
 }

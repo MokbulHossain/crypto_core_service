@@ -187,7 +187,7 @@ export class UserService {
             this.subscribermapRepository.findOne({
                 where : { user_id, subscriber_id: hero_id }
             }),
-            this.DB.query(query, { replacements:{user_id}, type: QueryTypes.SELECT})
+            this.DB.query(query, { replacements:{user_id: hero_id}, type: QueryTypes.SELECT})
         ])
 
         return {
@@ -444,6 +444,15 @@ export class UserService {
 
         const query2 = `insert into favorite_coins(user_id, coin_id) SELECT :user_id, UNNEST(:favorite_coin_ids::int[])`
         this.DB.query(query2, { type: QueryTypes.SELECT, replacements: { user_id, favorite_coin_ids:`{${favorite_coin_ids.join(',')}}` }}).catch(e => console.log(e))
+        return { code: 100, resp_keyword: 'Ok' }
+    }
+
+    async updateBio(user_id, bio) {
+      
+        this.userRepository.update({bio}, {
+            where: {id: user_id}
+        })
+
         return { code: 100, resp_keyword: 'Ok' }
     }
 }
