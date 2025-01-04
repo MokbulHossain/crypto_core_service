@@ -107,16 +107,19 @@ export class UserService {
     }
 
     async userDetails(user_id) {
-        const [data, data2]  = await Promise.all([
+        const query = `select * from favorite_coin_view where user_id = :user_id`
+        const [data, data2, favorite_coins]  = await Promise.all([
             this.userRepository.findOne({attributes: { exclude: ['password'] }, where : { id: user_id}}),
             this.heroRepository.findOne({
                 where : { user_id}
-            })
+            }),
+            this.DB.query(query, { replacements:{user_id}, type: QueryTypes.SELECT})
         ])
 
         return {
             ...data.dataValues,
             ...data2.dataValues,
+            favorite_coins,
             progress: {
                 title: "Gold",
                 subtitle: "1 of 4",
@@ -171,7 +174,8 @@ export class UserService {
     }
     async heroDetails(user_id, hero_id) {
 
-        const [userData, follower, subscriber] = await Promise.all([
+        const query = `select * from favorite_coin_view where user_id = :user_id`
+        const [userData, follower, subscriber, favorite_coins] = await Promise.all([
             this.heroRepository.findOne({
                 where : { user_id: hero_id}
             }),
@@ -182,13 +186,15 @@ export class UserService {
     
             this.subscribermapRepository.findOne({
                 where : { user_id, subscriber_id: hero_id }
-            })
+            }),
+            this.DB.query(query, { replacements:{user_id}, type: QueryTypes.SELECT})
         ])
 
         return {
             ...userData['dataValues'],
             follow: follower ? true : false,
-            subscribe: subscriber ? true : false
+            subscribe: subscriber ? true : false,
+            favorite_coins
         }
 
     }
