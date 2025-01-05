@@ -11,6 +11,7 @@ import { UserModule } from './modules/user/user.module';
 import { SignalModule } from './modules/signal/signal.module';
 import { RewardModule } from './modules/reward/reward.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
+import { StoreModule } from './modules/store/store.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { CampaignsModule } from './modules/campaigns/campaigns.module';
     UserModule,
     SignalModule,
     RewardModule,
-    CampaignsModule
+    CampaignsModule,
+    StoreModule
   ],
   controllers: [
 

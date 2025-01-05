@@ -9,6 +9,6 @@ export class CampaignsService {
         @Inject(CAMPAIGN_REPOSITORY) private campaignRepository: typeof CampaignModel
     ){}
     async campaignByKeyword(keyword) {
-        return await this.campaignRepository.findOne({where: {keyword}})
+        return await this.campaignRepository.findAll({where: {keyword}, raw: true})
     }
 }

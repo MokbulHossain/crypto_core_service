@@ -54,4 +54,14 @@ export class CampaignModel extends Model{
     })
     created_at: Date
 
+    @Column({
+        type: DataType.FLOAT
+    })
+    previous_price: number;
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    current_price: number;
+
 }

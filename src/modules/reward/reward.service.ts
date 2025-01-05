@@ -13,11 +13,13 @@ export class RewardService {
 
     async watchAd(user_id) {
 
-        const campaign = await this.campaignsService.campaignByKeyword('watchad');
-        if (!campaign){
+        const campaigns = await this.campaignsService.campaignByKeyword('watchad');
+        if (!campaigns.length){
             winstonLog.log('info', 'No Campaign Found For Watch Ad', { label: 'Campaign', transactionid_for_log: user_id })
             return { code: 100, resp_keyword: 'Ok' }
         }
+
+        let campaign = campaigns[0]
 
         this.userService.addUserCoin(user_id, campaign.reward_amount, campaign.reward_type, `${campaign.type} => ${campaign.title}`)
 

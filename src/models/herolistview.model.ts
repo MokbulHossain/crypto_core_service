@@ -19,6 +19,11 @@ export class HeroListViewModel extends Model{
     @Column({
         type: DataType.TEXT
     })
+    username: string
+
+    @Column({
+        type: DataType.TEXT
+    })
     name: string;
 
     @Column({
