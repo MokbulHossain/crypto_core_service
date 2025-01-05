@@ -385,7 +385,7 @@ export class UserService {
         if (coin_type === 'hero') {
            updateParameter = 'hero_coin'
         }
-        else if (coin_type === 'gem') {
+        else if (coin_type === 'gems') {
             updateParameter = 'gems_coin'
         }
 

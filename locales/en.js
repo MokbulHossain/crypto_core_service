@@ -47,5 +47,6 @@
 	"signal_type must be either All or Soot or Futures": "signal_type must be either All or Soot or Futures",
 	"signal_type should not be empty": "signal_type should not be empty",
 	"status should not be empty": "status should not be empty",
-	"status must be a number string": "status must be a number string"
+	"status must be a number string": "status must be a number string",
+	"RedeemCodeNotFoundOrUsed": "Redeem code not found or used, Please Contact with Administrator"
 }

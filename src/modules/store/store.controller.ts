@@ -16,4 +16,18 @@ export class StoreController {
         return await this.storeService.purchase()
         
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('redeem')
+    async redeem(@Request() req, @Body() reqdata) {   
+
+        const response = await this.storeService.redeem(req.user['user_id'], reqdata['redeem_code'])
+       
+        if (response.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(response.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(response.resp_keyword)}
+    }
 }
