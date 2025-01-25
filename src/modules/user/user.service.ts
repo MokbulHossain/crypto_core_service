@@ -203,23 +203,25 @@ export class UserService {
 
         let conditions = {}
         if (search) {
-            const isNumeric = /^\d+$/.test(search); // Check if the search contains only digits
-            if (isNumeric) {
-                conditions = {
-                    [Op.or]: [
-                      { name: { [Op.iLike]: `%${search}%` } },
-                      { email: { [Op.iLike]: `%${search}%` } },
-                      { mobile: { [Op.iLike]: `%${search}%` } },
-                    ]
-                }
-            } else {
-                conditions = {
-                    [Op.or]: [
-                      { name: { [Op.iLike]: `%${search}%` } },
-                      { email: { [Op.iLike]: `%${search}%` } }                    
-                    ]
-                }
-            }
+            // username
+            // const isNumeric = /^\d+$/.test(search); // Check if the search contains only digits
+            // if (isNumeric) {
+            //     conditions = {
+            //         [Op.or]: [
+            //           { name: { [Op.iLike]: `%${search}%` } },
+            //           { email: { [Op.iLike]: `%${search}%` } },
+            //           { mobile: { [Op.iLike]: `%${search}%` } },
+            //         ]
+            //     }
+            // } else {
+            //     conditions = {
+            //         [Op.or]: [
+            //           { name: { [Op.iLike]: `%${search}%` } },
+            //           { email: { [Op.iLike]: `%${search}%` } }                    
+            //         ]
+            //     }
+            // }
+            conditions = {username: { [Op.iLike]: `%${search}%` }}
         }
         return await this.heroRepository.findAll({
             where: conditions,
