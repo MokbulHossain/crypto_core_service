@@ -90,4 +90,9 @@ export class HeroListViewModel extends Model{
         type: DataType.TEXT
     })
     bio: string
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    subscription_charge:number
 }
