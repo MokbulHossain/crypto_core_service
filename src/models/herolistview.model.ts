@@ -95,4 +95,9 @@ export class HeroListViewModel extends Model{
         type: DataType.FLOAT
     })
     subscription_charge:number
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    signal_unlock_coin:number
 }
