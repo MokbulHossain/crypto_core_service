@@ -346,15 +346,19 @@ export class UserService {
 
     async referInfo(user_id) {
 
-        const user = await this.userRepository.findOne({ 
-            attributes: ['refer_code'],
-            where: { id: user_id }
-        })
+        const query = `select count(*), sum(earning) total_earning from user_refer_map where refer_user_id = :user_id`
+        const [data, user] = await Promise.all([
+            this.DB.query(query, { replacements:{user_id}, type: QueryTypes.SELECT}),
+            this.userRepository.findOne({ 
+                attributes: ['refer_code'],
+                where: { id: user_id }
+            })
+        ])
 
         return {
             refer_code: user.refer_code || null,
-            invited: 0,
-            earning: 0.4
+            invited: +(data[0]['count']) || 0,
+            earning: data[0]['total_earning'] || 0
         }
     }
 
