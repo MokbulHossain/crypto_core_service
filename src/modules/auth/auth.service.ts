@@ -214,6 +214,10 @@ export class AuthService {
                     this.userService.create({...tempuserData }),
                     this.userService.deleteTempuser(deviceinfo.email)
                 ])
+                if (tempuserData.used_refer_code) {
+
+                    this.createReferMap(tempuserData, newuser.id)
+                }
                 userData = newuser
                 break
         }
@@ -225,6 +229,11 @@ export class AuthService {
 
         return { code: 100, resp_keyword: 'Ok', userData: userData['dataValues'] }
 
+    }
+
+    async createReferMap(tempuserData, newuser_id) {
+        const referUserInfo = await this.userService.getSingleuserByReferCode(tempuserData.used_refer_code)
+        this.userService.createReferMap({user_id: newuser_id, refer_code: tempuserData.used_refer_code, refer_user_id: referUserInfo.id})
     }
 
     async passwordSet(newpassword, user_id) {

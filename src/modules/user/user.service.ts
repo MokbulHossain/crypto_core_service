@@ -1,9 +1,10 @@
 import { Injectable , Inject} from '@nestjs/common';
 import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, 
-    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel, SubscribeHeroListViewModel} from '../../models'
+    FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel, SubscribeHeroListViewModel, UserReferMapListviewModel,
+    UserReferMapModel} from '../../models'
 import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PROTOCOL_REPOSITORY, COUNTRIES_REPOSITORY, 
     USER_TEMP_REPOSITORY, HEROLISTVIEW_REPOSITORY, FOLLOWINGHEROLISTVIEW_REPOSITORY, FOLLOWERMAP_REPOSITORY,SUBSCRIBERMAP_REPOSITORY,
-    DATABASE_CONNECTION, SUBSCRIBEHEROLISTVIEW_REPOSITORY} from '../../config/constants'
+    DATABASE_CONNECTION, SUBSCRIBEHEROLISTVIEW_REPOSITORY, USER_REFERLISTVIEW_REPOSITORY, USER_REFERMAP_REPOSITORY} from '../../config/constants'
 
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
@@ -22,14 +23,26 @@ export class UserService {
         @Inject(FOLLOWERMAP_REPOSITORY) private readonly followermapRepository: typeof FollowerMapModel,
         @Inject(SUBSCRIBERMAP_REPOSITORY) private readonly subscribermapRepository: typeof SubscriberMapModel,
         @Inject(SUBSCRIBEHEROLISTVIEW_REPOSITORY) private readonly subscribeViewRepository: typeof SubscribeHeroListViewModel,
+        @Inject(USER_REFERLISTVIEW_REPOSITORY) private readonly userReferMapListviewModel: typeof UserReferMapListviewModel,
+        @Inject(USER_REFERMAP_REPOSITORY) private readonly userReferMapModel: typeof UserReferMapModel,
+
 
         @Inject(DATABASE_CONNECTION) private DB: Sequelize
 
     ) { }
 
+    async createReferMap( data ){
+        return await this.userReferMapModel.create(data)
+
+    }
     async getSingleuser( email ){
 
         return await this.userRepository.findOne({ where: { email }})
+    }
+
+    async getSingleuserByReferCode( refer_code ){
+
+        return await this.userRepository.findOne({ where: { refer_code }})
     }
 
     async getSingleuserById( id ){
@@ -175,7 +188,8 @@ export class UserService {
     async heroDetails(user_id, hero_id) {
 
         const query = `select * from favorite_coin_view where user_id = :user_id`
-        const [userData, follower, subscriber, favorite_coins] = await Promise.all([
+        const query2 = `select * from coin_conversion_rate where from_coin='hero' and to_coin='gem' order by id desc`
+        const [userData, follower, subscriber, favorite_coins, coin_conversion_rate] = await Promise.all([
             this.heroRepository.findOne({
                 where : { user_id: hero_id}
             }),
@@ -187,8 +201,14 @@ export class UserService {
             this.subscribermapRepository.findOne({
                 where : { user_id, subscriber_id: hero_id }
             }),
-            this.DB.query(query, { replacements:{user_id: hero_id}, type: QueryTypes.SELECT})
+            this.DB.query(query, { replacements:{user_id: hero_id}, type: QueryTypes.SELECT}),
+            this.DB.query(query2, { type: QueryTypes.SELECT})
         ])
+
+        if (coin_conversion_rate.length) {
+            // userData['dataValues']['subscription_charge'] = hero coin
+            userData['dataValues']['subscription_charge'] = +(userData['dataValues']['subscription_charge'] * (coin_conversion_rate[0]['to_coin_amount'] / coin_conversion_rate[0]['from_coin_amount'] ))
+        }
 
         return {
             ...userData['dataValues'],
@@ -357,26 +377,31 @@ export class UserService {
 
     async referral_earning_list(user_id, page, limit ) {
 
-        return [
-            {
-                id: 1,
-                refer_username: 'username',
-                spent_gem: 0,
-                earning: 0
-            },
-            {
-                id: 2,
-                refer_username: 'username',
-                spent_gem: 0,
-                earning: 0
-            },
-            {
-                id: 3,
-                refer_username: 'username',
-                spent_gem: 0,
-                earning: 0
-            }
-        ]
+        return await this.userReferMapListviewModel.findAll({
+            where: { refer_user_id: user_id },
+            offset: (page - 1) * limit,
+            limit
+        })
+        // return [
+        //     {
+        //         id: 1,
+        //         refer_username: 'username',
+        //         spent_gem: 0,
+        //         earning: 0
+        //     },
+        //     {
+        //         id: 2,
+        //         refer_username: 'username',
+        //         spent_gem: 0,
+        //         earning: 0
+        //     },
+        //     {
+        //         id: 3,
+        //         refer_username: 'username',
+        //         spent_gem: 0,
+        //         earning: 0
+        //     }
+        // ]
     }
    //ad mobe champian_coin => 10
     async addUserCoin(user_id, coin, coin_type, ref) {

@@ -18,3 +18,6 @@ export * from './signalview.model'
 export * from './signal_unlock_map.model'
 
 export * from './campaigns.model'
+
+export * from './user_refer_map_listview.model'
+export * from './user_refer_map.model'
