@@ -145,8 +145,8 @@ export class SignalService {
 
       const id = Date.now()
       // Ascending order
-      const sortData = reqdata.signal_targets.sort((a, b) => a - b)
-      const targetData = sortData.map(item => ({signal_id: id, target: item}))
+      // const sortData = reqdata.signal_targets.sort((a, b) => a - b)
+      const targetData = reqdata.signal_targets.map(item => ({signal_id: id, target: item}))
 
       Promise.all([
          this.signalRepository.create({...reqdata, id, user_id}),
