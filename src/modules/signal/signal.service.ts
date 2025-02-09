@@ -255,6 +255,12 @@ export class SignalService {
       if (reqdata['package_type'] !== 'All') {
          conditions['package_type'] = reqdata['package_type']
       }
+
+      if (reqdata['start_date'] && reqdata['end_date']) {
+
+         conditions['start_date'] = `${reqdata['start_date']} 00:00:00`
+         conditions['end_date'] = `${reqdata['end_date']} 23:59:59`
+     }
          
       return await this.DB.query(`select * from get_unlock_signals(_user_id :=:user_id::bigint, _offset :=:offset, _limit :=:limit, _conditions :=:conditions::jsonb)`,{
          replacements: {
