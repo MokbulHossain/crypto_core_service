@@ -217,7 +217,14 @@ export class SignalService {
             conditions['package_type'] = 'Free'
 
          }
-         
+
+         if (reqdata['start_date'] && reqdata['end_date']) {
+            conditions['start_date'] = reqdata['start_date'];
+            conditions['end_date'] = reqdata['end_date'];
+        }
+
+        delete conditions['created_at']
+
          return await this.DB.query(`select * from get_signals_with_unlock_status(_user_id :=:user_id::bigint, _hero_id :=:hero_id::bigint, _offset :=:offset, _limit :=:limit, _conditions :=:conditions::jsonb)`,{
             replacements: {
                user_id,
