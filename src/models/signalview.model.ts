@@ -92,6 +92,21 @@ export class SignalViewModel extends Model{
     })
     coin_logo: string;
 
+    @Column({
+        type: DataType.STRING
+    })
+    closed_title: string;
+
+    @Column({
+        type: DataType.STRING
+    })
+    profit_loss: string;
+
+    @Column({
+        type: DataType.FLOAT
+    })
+    profit_loss_perc: number;
+
     @HasMany(() => SignalTargetModel)
     signal_target: SignalTargetModel[]
 }

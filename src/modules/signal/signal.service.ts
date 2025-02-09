@@ -186,6 +186,14 @@ export class SignalService {
          conditions['package_type'] = reqdata['package_type']
       }
 
+      if (reqdata['start_date'] && reqdata['end_date']) {
+         reqdata['start_date'] = `${reqdata['start_date']} 00:00:00`
+         reqdata['end_date'] = `${reqdata['end_date']} 23:59:59`
+         conditions['created_at'] = {
+            [Op.between]: [reqdata['start_date'], reqdata['end_date']]
+        };
+      }
+
       // check for my signals..
       if (user_id == hero_id) {
          return await this.signalviewRepository.findAll({

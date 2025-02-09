@@ -1,4 +1,4 @@
-import { IsNotEmpty, ValidateIf, MinLength, IsEmail, IsEnum, isEmpty, isBoolean, IsOptional, IsArray, ArrayMinSize, ArrayNotEmpty, ArrayMaxSize, IsNumber, IsNumberString} from 'class-validator';
+import { IsNotEmpty, ValidateIf, MinLength, IsEmail, IsEnum, isEmpty, isBoolean, IsOptional, IsArray, ArrayMinSize, ArrayNotEmpty, ArrayMaxSize, IsNumber, IsNumberString, IsDateString} from 'class-validator';
 import { Type } from 'class-transformer';
 import {IntersectionType } from  '@nestjs/mapped-types';
 
@@ -107,6 +107,14 @@ export class SignalListDto {
 
     @IsOptional()
     readonly only_unlocked: string
+
+    @IsOptional()
+    @IsDateString()
+    readonly start_date: Date
+
+    @IsOptional()
+    @IsDateString()
+    readonly end_date: Date
 }
 
 export class SignalUnlockDto {
