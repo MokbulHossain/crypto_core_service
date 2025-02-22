@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards, Request, Post, Query, Body, BadRequestExcep
 import { SignalService } from './signal.service'
 import { JwtAuthGuard } from '../../middleware/guards'
 import {UNAUTHORIZED, BAD_REQUEST} from '../../helpers/responseHelper'
-import { SignalCreateDto, SignalListDto, SignalUnlockDto } from '../../dto'
+import { SignalCreateDto, SignalListDto, SignalUnlockDto, SignalDeleteDto } from '../../dto'
 
 @Controller('signal')
 export class SignalController {
@@ -33,6 +33,20 @@ export class SignalController {
        return await this.signalService.create(req.user['user_id'], reqdata)
         
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('delete')
+    async delete(@Request() req, @Body() reqdata: SignalDeleteDto) {
+        
+       const data =  await this.signalService.delete(req.user['user_id'], reqdata)
+       if (data.code !== 100) {
+
+        throw new BadRequestException(BAD_REQUEST(req.i18n.__(data.resp_keyword),null,req))
+    }
+
+    return { res_message: req.i18n.__(data.resp_keyword)}
+        
+   }
 
     @UseGuards(JwtAuthGuard)
     @Get('list')

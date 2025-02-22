@@ -2,8 +2,9 @@ import { Injectable , Inject} from '@nestjs/common';
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
 import { DATABASE_CONNECTION } from '../../config/constants'
-import {SignalModel, SignalTargetModel, CoinTypeModel, SignalViewModel, SignalUnlockMapModel} from '../../models'
-import {REDIS_CONNECTION, SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY, SIGNALVIEW_REPOSITORY, SIGNALUNLOKMAP_REPOSITORY} from '../../config/constants'
+import {SignalModel, SignalTargetModel, CoinTypeModel, SignalViewModel, SignalUnlockMapModel, SignalHistoryModel, SignalTargetHistoryModel} from '../../models'
+import {REDIS_CONNECTION, SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY, SIGNALVIEW_REPOSITORY, 
+   SIGNALUNLOKMAP_REPOSITORY, SIGNAL_TARGET_HISTORY_REPOSITORY, SIGNAL_HISTORY_REPOSITORY} from '../../config/constants'
 import { SignalCreateDto } from '../../dto'
 import axios from 'axios'
 import { winstonLog } from '@config/winstonLog'
@@ -17,6 +18,10 @@ export class SignalService {
         @Inject(REDIS_CONNECTION) private redisClient: any,
         @Inject(SIGNAL_REPOSITORY) private readonly signalRepository: typeof SignalModel,
         @Inject(SIGNAL_TARGET_REPOSITORY) private readonly signalTargetRepository: typeof SignalTargetModel,
+
+        @Inject(SIGNAL_HISTORY_REPOSITORY) private readonly signalHistoryRepository: typeof SignalHistoryModel,
+        @Inject(SIGNAL_TARGET_HISTORY_REPOSITORY) private readonly signalTargetHistoryRepository: typeof SignalTargetHistoryModel,
+
         @Inject(COINTYPE_REPOSITORY) private readonly cointypeRepository: typeof CoinTypeModel,
         @Inject(SIGNALVIEW_REPOSITORY) private readonly signalviewRepository: typeof SignalViewModel,
         @Inject(SIGNALUNLOKMAP_REPOSITORY) private readonly signalunlockmapRepository: typeof SignalUnlockMapModel,
@@ -131,7 +136,7 @@ export class SignalService {
          .then(resp => {
             const respData = resp.data
             console.log('respData => ', respData)
-            this.redisClient.setEx(`coin_price:${coin_name}`, 10, (respData['price']))
+            this.redisClient.setEx(`coin_price:${coin_name}`, 5, (respData['price']))
             return (+respData['price'])
 
          }).catch(e => {
@@ -240,6 +245,33 @@ export class SignalService {
 
     }
 
+    async delete(user_id, reqdata) {
+
+      const { signal_id } = reqdata
+      const data = await this.signalRepository.findOne({where : { id: signal_id , user_id}})
+      if (!data) {
+         return {code: 400, resp_keyword: 'Signal is not exist'}
+      }
+      if (data.status != 1) {
+         return {code: 400, resp_keyword: 'Signal is not in pending state'}
+      }
+
+      const signal_targets = await this.signalTargetRepository.findAll({
+         where: {signal_id}
+      })
+      await Promise.all([
+         this.signalHistoryRepository.create({...data['dataValues']}),
+         this.signalTargetHistoryRepository.bulkCreate(signal_targets.map(item => ({...item['dataValues']})))
+      ])
+
+      await Promise.all([
+         this.signalRepository.destroy({where : { id: signal_id }}),
+         this.signalTargetRepository.destroy({where : { signal_id }})
+      ])
+
+      return {code: 100, resp_keyword: 'Signal deleted successfully'}
+
+    }
     async unlockList(user_id, page, limit, reqdata) {
 
       const hero_id = reqdata['hero_id'] || user_id

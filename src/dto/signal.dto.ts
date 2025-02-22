@@ -34,6 +34,11 @@ enum RiskType {
     Medium = 'Medium',
     Low = 'Low'
 }
+
+export class SignalDeleteDto {
+    @IsNotEmpty()
+    readonly signal_id: number;
+}
 export class SignalCreateDto {
 
    @IsNotEmpty() 
