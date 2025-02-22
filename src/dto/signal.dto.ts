@@ -37,7 +37,8 @@ enum RiskType {
 
 export class SignalDeleteDto {
     @IsNotEmpty()
-    readonly signal_id: number;
+    @IsNumberString()
+    readonly signal_id: string;
 }
 export class SignalCreateDto {
 
@@ -87,6 +88,7 @@ export class SignalCreateDto {
     signal_targets: number[];
 }
 
+export class SignalEditDto extends IntersectionType(SignalCreateDto, SignalDeleteDto) { }
 
 export class SignalListDto {
 

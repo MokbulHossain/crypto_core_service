@@ -5,7 +5,7 @@ import { DATABASE_CONNECTION } from '../../config/constants'
 import {SignalModel, SignalTargetModel, CoinTypeModel, SignalViewModel, SignalUnlockMapModel, SignalHistoryModel, SignalTargetHistoryModel} from '../../models'
 import {REDIS_CONNECTION, SIGNAL_REPOSITORY, SIGNAL_TARGET_REPOSITORY, COINTYPE_REPOSITORY, SIGNALVIEW_REPOSITORY, 
    SIGNALUNLOKMAP_REPOSITORY, SIGNAL_TARGET_HISTORY_REPOSITORY, SIGNAL_HISTORY_REPOSITORY} from '../../config/constants'
-import { SignalCreateDto } from '../../dto'
+import { SignalCreateDto, SignalEditDto } from '../../dto'
 import axios from 'axios'
 import { winstonLog } from '@config/winstonLog'
 import { UserService } from '../user/user.service'
@@ -159,6 +159,30 @@ export class SignalService {
       ])
 
       return true
+    }
+
+    async edit(user_id, reqdata: SignalEditDto) {
+
+      const signal_id = reqdata.signal_id
+      const data = await this.signalRepository.findOne({where : { id: signal_id , user_id}})
+      if (!data) {
+         return {code: 400, resp_keyword: 'Signal is not exist'}
+      }
+      if (data.status != 1) {
+         return {code: 400, resp_keyword: 'Signal is not in pending state'}
+      }
+      // Ascending order
+      // const sortData = reqdata.signal_targets.sort((a, b) => a - b)
+      const targetData = reqdata.signal_targets.map(item => ({signal_id, target: item}))
+
+      await this.signalTargetRepository.destroy({where : { signal_id }})
+
+      await Promise.all([
+         this.signalRepository.update({...reqdata}, {where : { id: signal_id} }),
+         this.signalTargetRepository.bulkCreate(targetData)
+      ])
+
+      return {code: 100, resp_keyword: 'Signal edited successfully'}
     }
 
    /**
