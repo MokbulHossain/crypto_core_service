@@ -3,6 +3,7 @@ import {
     Column,
     Model,
     DataType,
+    Sequelize
   } from 'sequelize-typescript';
   
   @Table({ tableName: 'follower_map' })
@@ -29,7 +30,7 @@ import {
 
     @Column({
         type: DataType.DATE,
-        defaultValue: new Date()
+        defaultValue: Sequelize.fn('NOW') // Use database's current timestamp
     })
     created_at: Date
   }

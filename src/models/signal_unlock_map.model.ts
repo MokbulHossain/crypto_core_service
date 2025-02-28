@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, ForeignKey, Sequelize } from 'sequelize-typescript';
 import { SignalViewModel } from './signalview.model';
 @Table({ tableName: 'signal_unlock_map' })
 
@@ -25,7 +25,7 @@ export class SignalUnlockMapModel extends Model{
 
     @Column({
         type: DataType.DATE,
-        defaultValue: new Date()
+        defaultValue: Sequelize.fn('NOW') // Use database's current timestamp
     })
     unlocked_at: Date
 }

@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, Sequelize } from 'sequelize-typescript';
 
 @Table({ tableName: 'campaigns' })
 
@@ -50,7 +50,8 @@ export class CampaignModel extends Model{
 
     @Column({
         type: DataType.DATE,
-        defaultValue: new Date()
+        defaultValue: Sequelize.fn('NOW') // Use database's current timestamp
+
     })
     created_at: Date
 
