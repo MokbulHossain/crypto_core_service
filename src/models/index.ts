@@ -24,3 +24,5 @@ export * from './user_refer_map.model'
 
 export * from './signals_history.model'
 export * from './signal_targets_history.model'
+
+export * from './daily_reward_claimed_map.model'

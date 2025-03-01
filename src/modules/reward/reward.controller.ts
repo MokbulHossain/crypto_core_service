@@ -23,4 +23,27 @@ export class RewardController {
         return { res_message: req.i18n.__(user.resp_keyword)}
         
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('daily_reward')
+    async dailyReward(@Request() req ) {
+        
+       return await this.rewardService.dailyReward(req.user['user_id'])
+        
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('claimed/daily_reward')
+    async dailyRewardClaim(@Request() req, @Body() reqdata) {
+        
+        const user = await this.rewardService.dailyRewardClaim(req.user['user_id'])
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+        
+    }
 }
