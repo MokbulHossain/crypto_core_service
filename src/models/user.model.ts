@@ -1,4 +1,5 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt, Sequelize } from 'sequelize-typescript';
+import  moment from 'moment';
 
 @Table({ tableName: 'users' })
 
@@ -147,4 +148,13 @@ export class UserModel extends Model{
         defaultValue: 0
     })
     subscription_charge: number
+
+    @Column({
+        type: DataType.DATEONLY,
+        get() {
+            const rawValue = this.getDataValue('champion_plus_spin_expiry');
+            return rawValue ? moment(rawValue).format('YYYY-MM-DD') : null;
+        }
+    })
+    champion_plus_spin_expiry: Date
 }

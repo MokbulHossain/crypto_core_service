@@ -50,6 +50,11 @@ export class UserService {
         return await this.userRepository.findOne({ where: { id }})
     }
 
+    async getSingleuserchampionPlusExpiryById( id ){
+
+        return await this.userRepository.findOne({ where: { id }, attributes: ['champion_plus_spin_expiry']})
+    }
+
     async getSingleTempuser( email ){
 
         return await this.userTempRepository.findOne({ where: { email }, order: [['id', 'desc']]})

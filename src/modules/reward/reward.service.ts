@@ -2,9 +2,10 @@ import { Injectable, Inject } from '@nestjs/common';
 import { UserService } from '../user/user.service'
 import { CampaignsService } from '../campaigns/campaigns.service';
 import { winstonLog } from '@config/winstonLog'
-import { DATABASE_CONNECTION, DAILY_REWARD_CLAIMED_MAP_REPOSITORY } from '../../config/constants'
-import { QueryTypes, Sequelize } from 'sequelize';
-import { DailyRewardClaimedMapModel } from '../../models'
+import { DATABASE_CONNECTION, DAILY_REWARD_CLAIMED_MAP_REPOSITORY, DAILY_SPIN_CLAIMED_MAP_REPOSITORY } from '../../config/constants'
+import { QueryTypes, Sequelize, Op } from 'sequelize';
+import { DailyRewardClaimedMapModel, DailySpinClaimedMapModel } from '../../models'
+import  moment from 'moment'
 
 @Injectable()
 export class RewardService {
@@ -13,7 +14,9 @@ export class RewardService {
         private readonly userService: UserService, 
         private readonly campaignsService: CampaignsService,
         @Inject(DATABASE_CONNECTION) private DB: Sequelize,
-        @Inject(DAILY_REWARD_CLAIMED_MAP_REPOSITORY) private dailyRewardClaimedMapRepository: typeof DailyRewardClaimedMapModel
+        @Inject(DAILY_REWARD_CLAIMED_MAP_REPOSITORY) private dailyRewardClaimedMapRepository: typeof DailyRewardClaimedMapModel,
+        @Inject(DAILY_SPIN_CLAIMED_MAP_REPOSITORY) private dailySpinClaimedMapModel: typeof DailySpinClaimedMapModel
+
     ) { }
 
     async watchAd(user_id) {
@@ -60,5 +63,54 @@ export class RewardService {
             winstonLog.log('info', 'No Campaign Found For Daily Reward', { label: 'Campaign', transactionid_for_log: user_id })
             return { code: 400, resp_keyword: 'No Campaign Found For Daily Reward' }
         }
+    }
+
+    async dailySpin(user_id) {  
+
+        let campaignPlusSpinConfig = [], haveCampaignPlusSpin = false, campaignPlusSpinCount = 0
+
+        const [userData, dailySpin, spinConfig] = await Promise.all([
+            this.userService.getSingleuserchampionPlusExpiryById( user_id ),
+            this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'spin', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] }),
+            this.campaignsService.campaignByKeyword('dailyspin')
+        ])
+
+        if (!spinConfig.length){
+            winstonLog.log('info', 'No Campaign Found For Daily Spin', { label: 'Campaign', transactionid_for_log: user_id })
+            return { code: 400, resp_keyword: 'No Campaign Found For Daily Spin' }
+        }
+
+        if (userData.champion_plus_spin_expiry) {
+            const expiryDate = moment(userData.champion_plus_spin_expiry);
+            const today = moment().startOf('day'); // Start of the current day
+        
+            if (expiryDate.isSame(today) || expiryDate.isAfter(today)) {
+                haveCampaignPlusSpin = true
+                let [campaignPlusSpinConf, dailycampaignPlusSpin] = await Promise.all([
+                        this.campaignsService.campaignByKeyword('campaignplusdailyspin'),
+                        this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'campaign_plus', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] }),
+                    ])
+    
+                campaignPlusSpinConfig = campaignPlusSpinConf
+                campaignPlusSpinCount = dailycampaignPlusSpin ? dailycampaignPlusSpin.rest_spin : 2
+            } 
+            else {
+                // Expired (before today)
+                winstonLog.log('info', 'Champion Plus Spin Expired', { label: 'Campaign', transactionid_for_log: user_id });
+            }
+        } else {
+            // Handle case where champion_plus_spin_expiry is null or undefined
+            winstonLog.log('warn', 'champion_plus_spin_expiry is null or undefined', { label: 'Campaign', transactionid_for_log: user_id });
+        }
+
+
+        return {
+            spinConfig,
+            spinCount: dailySpin ? dailySpin.rest_spin : 2,
+            haveCampaignPlusSpin,
+            campaignPlusSpinConfig,
+            campaignPlusSpinCount
+        }
+
     }
 }

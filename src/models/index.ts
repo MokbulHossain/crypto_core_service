@@ -1,3 +1,5 @@
+import exp from 'constants'
+
 export *  from './user.model'
 export *  from './user_temp.model'
 export * from './logs.model'
@@ -26,3 +28,4 @@ export * from './signals_history.model'
 export * from './signal_targets_history.model'
 
 export * from './daily_reward_claimed_map.model'
+export * from './daily_spin_claimed_map.model'

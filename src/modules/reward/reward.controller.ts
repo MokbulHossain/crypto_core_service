@@ -46,4 +46,12 @@ export class RewardController {
         return { res_message: req.i18n.__(user.resp_keyword)}
         
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('daily_spin')
+    async dailySpin(@Request() req ) {
+        
+       return await this.rewardService.dailySpin(req.user['user_id'])
+        
+    }
 }
