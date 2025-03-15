@@ -49,5 +49,6 @@
 	"status should not be empty": "status should not be empty",
 	"status must be a number string": "status must be a number string",
 	"RedeemCodeNotFoundOrUsed": "Redeem code not found or used, Please Contact with Administrator",
-	"No Campaign Found For Daily Reward": "No Campaign Found For Daily Reward"
+	"No Campaign Found For Daily Reward": "No Campaign Found For Daily Reward",
+	"No Campaign Found For Daily Spin": "No Campaign Found For Daily Spin"
 }

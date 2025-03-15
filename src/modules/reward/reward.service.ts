@@ -71,7 +71,7 @@ export class RewardService {
 
         const [userData, dailySpin, spinConfig] = await Promise.all([
             this.userService.getSingleuserchampionPlusExpiryById( user_id ),
-            this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'spin', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] }),
+            this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'dailyspin', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] }),
             this.campaignsService.campaignByKeyword('dailyspin')
         ])
 
@@ -88,7 +88,7 @@ export class RewardService {
                 haveCampaignPlusSpin = true
                 let [campaignPlusSpinConf, dailycampaignPlusSpin] = await Promise.all([
                         this.campaignsService.campaignByKeyword('campaignplusdailyspin'),
-                        this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'campaign_plus', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] }),
+                        this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'campaignplusdailyspin', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] }),
                     ])
     
                 campaignPlusSpinConfig = campaignPlusSpinConf
@@ -112,5 +112,50 @@ export class RewardService {
             campaignPlusSpinCount
         }
 
+    }
+
+    async dailySpinClaim(user_id, spin_id) {
+
+        let rest_spin = 0
+
+        const data = await this.campaignsService.campaignById(spin_id)
+        if (data && (data['type'] == 'spin')) {
+
+            if (data['keyword'] == 'dailyspin') {
+                const dailySpin = await this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'dailyspin', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] })
+                rest_spin = dailySpin ? dailySpin.rest_spin : 2
+            }
+            else if (data['keyword'] == 'campaignplusdailyspin') {
+               const dailycampaignPlusSpin = await this.dailySpinClaimedMapModel.findOne({ where: { user_id, spin_type:'campaignplusdailyspin', created_at: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } }, order: [['id', 'desc']] })
+               rest_spin = dailycampaignPlusSpin ? dailycampaignPlusSpin.rest_spin : 2
+
+            }
+            else {
+                winstonLog.log('info', 'No Campaign Found For Daily Spin', { label: 'Campaign', transactionid_for_log: user_id })
+                return { code: 400, resp_keyword: 'No Campaign Found For Daily Spin' }
+            }
+
+            if (data['reward_type'] != 'spin') {
+                this.userService.addUserCoin(user_id, +data['reward_amount'], data['reward_type'], `${data['type']} => ${data['title']}`)
+            }
+            else {
+                rest_spin = rest_spin + (+data['reward_amount'])
+            }
+
+            await this.dailySpinClaimedMapModel.create({
+                user_id: user_id,
+                campaign_id: data['id'],
+                spin_type: data['keyword'],
+                reward_type: data['reward_type'],
+                reward_amount: data['reward_amount'],
+                rest_spin: rest_spin - 1
+            })
+            return { code: 100, resp_keyword: 'Ok' }
+        }
+        else {
+            winstonLog.log('info', 'No Campaign Found For Daily Spin', { label: 'Campaign', transactionid_for_log: user_id })
+            return { code: 400, resp_keyword: 'No Campaign Found For Daily Spin' }
+
+        }
     }
 }

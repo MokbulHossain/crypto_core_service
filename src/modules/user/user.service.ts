@@ -415,7 +415,7 @@ export class UserService {
    //ad mobe champian_coin => 10
     async addUserCoin(user_id, coin, coin_type, ref) {
 
-        let updateParameter = 'champion_coin'
+        let updateParameter = 'champion_coin' 
         const incrementBy = (+coin)
 
         if (coin_type === 'hero') {

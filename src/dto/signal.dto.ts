@@ -129,3 +129,9 @@ export class SignalUnlockDto {
     @IsNumberString()
     readonly signal_id : string
 }
+
+export class SpinClaimDto {
+    @IsNotEmpty() 
+    @IsNumberString()
+    readonly spin_id : string
+}
