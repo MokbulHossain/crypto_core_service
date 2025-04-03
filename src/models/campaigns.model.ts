@@ -65,4 +65,9 @@ export class CampaignModel extends Model{
     })
     current_price: number;
 
+    @Column({
+        type: DataType.FLOAT
+    })
+    probability: number;
+
 }
