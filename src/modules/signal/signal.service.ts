@@ -1,4 +1,4 @@
-import { Injectable , Inject} from '@nestjs/common';
+import { Injectable , Inject, BadRequestException} from '@nestjs/common';
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
 import { DATABASE_CONNECTION } from '../../config/constants'
@@ -352,11 +352,65 @@ export class SignalService {
 
     }
 
+    /**
+     * 
+     * Signal unlock logic⇒
+         1. Closed signal always will be open for all user and all type(free, premium) , doesn’t matter on subscribe or not
+         2. Unlock price can be change from db(all type signal , for all user will be same price)
+         3. Unsubscribe user also can see all type of signal(free, premium) in list
+         4. Free signal anyone can unlock with champion coin but subscribe user will get free
+         5. Premium signal only unlockable by subscribe user only with free coin
+     */
     async unlock(user_id, signal_id) {
 
-      const signal = await this.signalunlockmapRepository.findOne({where: {signal_id, unlocked_by_user_id: user_id}})
-      if (!signal) {
-         this.signalunlockmapRepository.create({signal_id, unlocked_by_user_id: user_id})      
+      let unlocked_price = 600
+      const data = await this.signalRepository.findOne({where : { id: signal_id}})
+      if (!data) {
+         throw  new BadRequestException('Signal is not exist')
+         // return {code: 400, resp_keyword: 'Signal is not exist'}
+      }
+      const [alreadysignalunlocked, subscriber] = await Promise.all([
+         this.signalunlockmapRepository.findOne({where: {signal_id, unlocked_by_user_id: user_id}}),
+         this.userService.checkSubscribeUser(user_id, data.user_id)
+      ])   
+     
+      if (!alreadysignalunlocked) {
+
+         if (!subscriber && data.package_type == 'Premium') {
+            throw  new BadRequestException('You don\'t have enough permission to unlock this signal, Please subscribe to unlock this signal')
+         }
+
+         // 
+         if (!subscriber && data.package_type == 'Free') {
+            const [userDetails, heroDetails] = await Promise.all([
+               this.userService.getSingleuserById(user_id),
+               this.userService.getSingleHeroById( data.user_id )
+            ])  
+
+            unlocked_price = heroDetails.signal_unlock_coin
+            
+
+            if (userDetails && userDetails.champion_coin < unlocked_price) {
+               throw  new BadRequestException('You don\'t have enough Champion Coin')
+            }
+            const query = `select * from coin_conversion_rate where from_coin='champion' and to_coin='hero' order by id desc limit 1`
+            const coin_conversion_rate = await this.DB.query(query, { type: QueryTypes.SELECT})
+   
+            let signalGiverReward = 0
+            if (coin_conversion_rate.length) {
+               signalGiverReward = +(unlocked_price * (coin_conversion_rate[0]['to_coin_amount'] / coin_conversion_rate[0]['from_coin_amount'] ))
+           }
+   
+           await Promise.all([
+            this.userService.addUserCoin(data.user_id, signalGiverReward, 'hero', `signalunlockbyuser signal_id => ${signal_id}, unlocked_by_user_id => ${user_id}`),
+            this.userService.DecreaseUserCoin(user_id, unlocked_price, 'champion', `signalunlock signal_id => ${signal_id}`),
+            this.signalunlockmapRepository.create({signal_id, unlocked_by_user_id: user_id})  
+           ]) 
+         }
+         else {
+            this.signalunlockmapRepository.create({signal_id, unlocked_by_user_id: user_id}) 
+         }
+     
       }
     
       return true

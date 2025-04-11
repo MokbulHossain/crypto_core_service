@@ -50,6 +50,12 @@ export class UserService {
         return await this.userRepository.findOne({ where: { id }})
     }
 
+    async getSingleHeroById( user_id ) {
+        return await this.heroRepository.findOne({
+            where : { user_id}
+        })
+    }
+
     async getSingleuserchampionPlusExpiryById( id ){
 
         return await this.userRepository.findOne({ where: { id }, attributes: ['champion_plus_spin_expiry']})
@@ -222,6 +228,13 @@ export class UserService {
             favorite_coins
         }
 
+    }
+
+    async checkSubscribeUser(user_id, hero_id) {
+        const subscriber = await this.subscribermapRepository.findOne({
+            where : { user_id, subscriber_id: hero_id }
+        })
+        return subscriber ? true : false
     }
 
     async herolist(page, limit, search) {
@@ -446,6 +459,39 @@ export class UserService {
         ])
     }
 
+    async DecreaseUserCoin(user_id, coin, coin_type, ref) {
+
+        let updateParameter = 'champion_coin' 
+        const decrementBy = (+coin)
+
+        if (coin_type === 'hero') {
+           updateParameter = 'hero_coin'
+        }
+        else if (coin_type === 'gems') {
+            updateParameter = 'gems_coin'
+        }
+
+        const query = `insert into coin_history(user_id, coin_type, coin, ref, created_at) VALUES (:user_id, :coin_type, :coin, :ref, :created_at)`
+       
+        Promise.all([
+            this.userRepository.decrement(updateParameter, {
+                by: decrementBy,
+                where: { id: user_id },
+                
+            }),
+            this.DB.query(query, {
+                replacements: {
+                    user_id,
+                    coin_type,
+                    coin: decrementBy,
+                    ref,
+                    created_at: new Date(),
+                    transactionid_for_log: user_id
+                }
+            })
+        ])
+    }
+
     async subscriptionConfig(user_id) {
 
         const query = `select id, coin_id from favorite_coins where user_id = :user_id`
@@ -491,4 +537,6 @@ export class UserService {
 
         return { code: 100, resp_keyword: 'Ok' }
     }
+
+
 }
