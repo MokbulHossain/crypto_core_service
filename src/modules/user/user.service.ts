@@ -223,6 +223,7 @@ export class UserService {
 
         return {
             ...userData['dataValues'],
+            signal_unlock_coin: subscriber ? 0 : userData['dataValues']['signal_unlock_coin'],
             follow: follower ? true : false,
             subscribe: subscriber ? true : false,
             favorite_coins
