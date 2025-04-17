@@ -9,7 +9,7 @@ export class CampaignsService {
         @Inject(CAMPAIGN_REPOSITORY) private campaignRepository: typeof CampaignModel
     ){}
     async campaignByKeyword(keyword) {
-        return await this.campaignRepository.findAll({where: {keyword}, raw: true})
+        return await this.campaignRepository.findAll({where: {keyword}, order:[['created_at', 'asc']], raw: true})
     }
 
     async campaignById(id) {
