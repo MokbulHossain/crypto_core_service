@@ -22,4 +22,10 @@ export class CoinTypeModel extends Model{
         defaultValue: 1
     })
     status: number
+
+    @Column({
+        type: DataType.JSONB,  // for JSONB
+        allowNull: true,
+      })
+    config: object;
 }
