@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException, forwardRef } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { REDIS_CONNECTION, DATABASE_CONNECTION} from '../../config/constants'
@@ -16,6 +16,7 @@ export class AuthService {
     constructor(
         @Inject(REDIS_CONNECTION) private redisClient: any,
         private readonly jwtService: JwtService,
+         @Inject(forwardRef(() => UserService))
         private readonly userService: UserService,
         private readonly notificationService: NotificationService,
     ) { }
@@ -393,7 +394,7 @@ export class AuthService {
         return {code: 100, resp_keyword: 'Ok', data : { userData: user, access_token, access_token_expires: decoded['exp'] || 7991326775, refresh_token, refresh_token_expires: decoded2['exp'] || 7991326775 }}
     }
 
-    private async hashPassword(password) {
+    async hashPassword(password) {
         const hash = await bcrypt.hash(password, 10);
         return hash;
     }

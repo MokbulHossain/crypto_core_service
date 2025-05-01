@@ -185,4 +185,19 @@ export class UserController {
         
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Post('update_profile')
+    async updateProfile(@Request() req, @Body() reqdata) {
+        
+        const user = await this.userService.updateProfile(req.user['user_id'], reqdata)
+       
+        if (user.code !== 100) {
+
+            throw new BadRequestException(BAD_REQUEST(req.i18n.__(user.resp_keyword),null,req))
+        }
+
+        return { res_message: req.i18n.__(user.resp_keyword)}
+        
+    }
+
 }

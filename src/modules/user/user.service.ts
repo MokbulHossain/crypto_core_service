@@ -1,4 +1,4 @@
-import { Injectable , Inject} from '@nestjs/common';
+import { Injectable , Inject, forwardRef} from '@nestjs/common';
 import {UserModel, UserDeviceModel, PasswordConfigModel, ProtocolModel, CountriesModel, UserTempModel, HeroListViewModel, 
     FollowingHeroListViewModel, FollowerMapModel, SubscriberMapModel, SubscribeHeroListViewModel, UserReferMapListviewModel,
     UserReferMapModel} from '../../models'
@@ -8,6 +8,7 @@ import {USER_REPOSITORY, USER_DEVICE_REPOSITORY, PASSWORD_CONFIG_REPOSITORY, PRO
 
 import { Op } from 'sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
+import { AuthService } from '../auth/auth.service'
 
 @Injectable()
 export class UserService {
@@ -27,7 +28,9 @@ export class UserService {
         @Inject(USER_REFERMAP_REPOSITORY) private readonly userReferMapModel: typeof UserReferMapModel,
 
 
-        @Inject(DATABASE_CONNECTION) private DB: Sequelize
+        @Inject(DATABASE_CONNECTION) private DB: Sequelize,
+        @Inject(forwardRef(() => AuthService))
+        private authService: AuthService
 
     ) { }
 
@@ -539,5 +542,30 @@ export class UserService {
         return { code: 100, resp_keyword: 'Ok' }
     }
 
+    async updateProfile(user_id, reqdata) {
+
+        const obj = {}
+        switch (reqdata['name']) {
+            case 'image':
+                obj['image'] = reqdata['value']
+                break
+            case 'mobile':
+                obj['mobile'] = reqdata['value']
+                break
+            case 'name':
+                obj['name'] = reqdata['value']
+                break
+            case 'password':
+                const password = await this.authService.hashPassword(reqdata['value'])
+                obj['password'] = password
+                break
+        }
+
+        this.userRepository.update(obj, {
+            where: {id: user_id}
+        })
+
+        return { code: 100, resp_keyword: 'Ok' }
+    }
 
 }

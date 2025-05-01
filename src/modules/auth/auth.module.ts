@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
@@ -16,7 +16,8 @@ const JWTKEY = IS_CRD_PLAIN ? process.env.JWTKEY : decrypt(process.env.JWTKEY)
 
 @Module({
     imports: [
-        UserModule,
+        // UserModule,
+        forwardRef(() => UserModule),
         DatabaseModule,
         RedisModule,
         PassportModule,
@@ -32,6 +33,7 @@ const JWTKEY = IS_CRD_PLAIN ? process.env.JWTKEY : decrypt(process.env.JWTKEY)
         NotificationService
     ],
     controllers: [AuthController],
+    exports: [AuthService]
     
 })
 export class AuthModule { }

@@ -12,6 +12,7 @@ import { SignalModule } from './modules/signal/signal.module';
 import { RewardModule } from './modules/reward/reward.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { StoreModule } from './modules/store/store.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { StoreModule } from './modules/store/store.module';
     SignalModule,
     RewardModule,
     CampaignsModule,
-    StoreModule
+    StoreModule,
+    UploadModule
   ],
   controllers: [
 
